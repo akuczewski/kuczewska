@@ -17,7 +17,7 @@ export function urlFor(source: any) {
 export async function getPortfolioItems() {
   try {
     const items = await client.fetch(`*[_type == "portfolioItem" && showOnHome == true]{
-      title,
+      title, title_en, title_es,
       location,
       "slug": slug.current,
       "imageUrl": image.asset->url,
@@ -34,7 +34,7 @@ export async function getPortfolioItems() {
 export async function getProjectBySlug(slug: string) {
   try {
     const project = await client.fetch(`*[_type == "portfolioItem" && slug.current == $slug][0]{
-      title,
+      title, title_en, title_es,
       location,
       description,
       "mainImageUrl": image.asset->url,

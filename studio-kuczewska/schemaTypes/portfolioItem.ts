@@ -10,6 +10,17 @@ export const portfolioItem = {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'title_en',
+            title: 'Tytuł po angielsku (opcjonalnie)',
+            description: 'Puste = strona sama przetłumaczy słowa typu „Apartament", „Mieszkanie"; nazwy własne zostaną bez zmian.',
+            type: 'string',
+        },
+        {
+            name: 'title_es',
+            title: 'Tytuł po hiszpańsku (opcjonalnie)',
+            type: 'string',
+        },
+        {
             name: 'slug',
             title: 'Slug (adres URL)',
             type: 'slug',

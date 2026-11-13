@@ -176,6 +176,26 @@ body.app-dark h1 {
   border-color: var(--action);
 }
 
+.ig-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.ig-icon {
+  flex-shrink: 0;
+}
+
+.ig-link:hover {
+  color: var(--action);
+}
+
+.contact-info .ig-link {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .eyebrow {
   font-size: 0.8rem;
   font-weight: 600;

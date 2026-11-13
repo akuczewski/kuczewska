@@ -3,6 +3,7 @@ import './app.css'
 import { getPortfolioItems, getAboutPage, getSiteSettings, getProjectBySlug } from './sanity'
 import { describeClick, getConsent, saveConsent, startAnalyticsIfConsented, track } from './lib/analytics'
 import { submitContactFormLead } from './lib/leads'
+import { localizedTitle } from './lib/titleTranslation'
 import { translations } from './translations'
 
 const PHONE_DISPLAY = '+48 511 017 427';
@@ -10,6 +11,8 @@ const PHONE_HREF = 'tel:+48511017427';
 const EMAIL = 'anna@kuczewska.com';
 const INSTAGRAM_URL = 'https://instagram.com/wnetrzanka';
 const LANGS = ['pl', 'en', 'es'];
+// Simple one-colour Instagram glyph; inherits the text colour around it.
+const INSTAGRAM_ICON = `<svg class="ig-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>`;
 
 // --- State & Router ---
 let currentPath = '';
@@ -199,7 +202,7 @@ function renderHomeShell(appElement: HTMLElement) {
             <div class="about-stats" id="about-stats"></div>
             <div class="about-actions">
               <a href="#contact" class="btn">${t('cta.book')}</a>
-              <a href="${INSTAGRAM_URL}" class="link-arrow" target="_blank" rel="noopener">Instagram @wnetrzanka</a>
+              <a href="${INSTAGRAM_URL}" class="ig-link" target="_blank" rel="noopener" aria-label="Instagram @wnetrzanka">${INSTAGRAM_ICON}<span>@wnetrzanka</span></a>
             </div>
           </div>
         </div>
@@ -213,7 +216,7 @@ function renderHomeShell(appElement: HTMLElement) {
             <p class="contact-direct-label">${t('contact.direct')}</p>
             <a class="contact-phone" href="${PHONE_HREF}">${PHONE_DISPLAY}</a>
             <a class="contact-mail" href="mailto:${EMAIL}">${EMAIL}</a>
-            <a class="contact-mail" href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Instagram @wnetrzanka</a>
+            <a class="ig-link" href="${INSTAGRAM_URL}" target="_blank" rel="noopener" aria-label="Instagram @wnetrzanka">${INSTAGRAM_ICON}<span>@wnetrzanka</span></a>
           </div>
           <div class="contact-card reveal" id="contact-card">
             <form class="contact-form" id="contact-form" novalidate>
@@ -268,7 +271,7 @@ function renderHomeShell(appElement: HTMLElement) {
         <div class="footer-links">
           <a href="${PHONE_HREF}">${PHONE_DISPLAY}</a>
           <a href="mailto:${EMAIL}">${EMAIL}</a>
-          <a href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Instagram</a>
+          <a href="${INSTAGRAM_URL}" class="ig-link" target="_blank" rel="noopener" aria-label="Instagram @wnetrzanka">${INSTAGRAM_ICON}</a>
         </div>
         <p>&copy; ${new Date().getFullYear()} ${t('footer.rights')} · <button type="button" class="footer-cookies" id="cookie-settings">${t('footer.cookies')}</button></p>
       </div>
@@ -453,7 +456,7 @@ function renderWall(data: any[]) {
   grid.innerHTML = data.map((item, index) => {
     const isLast = index === data.length - 1;
     const href = `#project/${encodeURIComponent(item.slug)}`;
-    const title = esc(item.title);
+    const title = esc(localizedTitle(item, currentLang));
     const previews: string[] = (item.preview?.map((p: any) => p?.url).filter(Boolean) as string[] | undefined)
       ?? fallbackPortfolio.filter((p) => p.slug !== item.slug).map((p) => p.imageUrl);
     // The last project gives two of its small tiles to the booking tile.
@@ -557,20 +560,21 @@ async function showProjectModal(slug: string) {
     return;
   }
 
-  titleEl.textContent = [project.title, project.location].filter(Boolean).join(' · ');
+  const projectTitle = localizedTitle(project, currentLang);
+  titleEl.textContent = [projectTitle, project.location].filter(Boolean).join(' · ');
   const description: string[] = (project.description || [])
     .map((block: any) => (block.children || []).map((child: any) => child.text).join('').trim())
     .filter(Boolean);
 
   body.innerHTML = `
     <div class="container modal-project-content">
-      <h1>${esc(project.title)}</h1>
+      <h1>${esc(projectTitle)}</h1>
       ${project.location ? `<p class="modal-location">${esc(project.location)}</p>` : ''}
       ${description.length ? `<div class="project-description">${description.map((p) => `<p>${esc(p)}</p>`).join('')}</div>` : ''}
       <div class="gallery-grid">
         ${project.gallery?.map((image: any) => `
           <div class="gallery-item">
-            <img src="${img(image.url, 1000)}" alt="${esc(image.alt || project.title)}" loading="lazy">
+            <img src="${img(image.url, 1000)}" alt="${esc(image.alt || projectTitle)}" loading="lazy">
           </div>`).join('') || `<p>${t('portfolio.empty')}</p>`}
       </div>
       <div class="modal-end">

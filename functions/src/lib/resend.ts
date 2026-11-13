@@ -7,6 +7,8 @@ export async function sendEmailViaResend(input: {
   to: string
   subject: string
   html: string
+  /** Where a plain "Reply" in the mail client should go (e.g. the person who wrote in). */
+  replyTo?: string
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -24,6 +26,7 @@ export async function sendEmailViaResend(input: {
       to: input.to,
       subject: input.subject,
       html: input.html,
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
     }),
   })
 

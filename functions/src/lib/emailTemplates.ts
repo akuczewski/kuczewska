@@ -78,3 +78,27 @@ export function buildSelectionSubmittedEmail(input: {
     `,
   }
 }
+
+/** To the photographer: someone sent the booking form on the website. */
+export function buildNewLeadEmail(input: {
+  name: string
+  email: string
+  phone: string | null
+  message: string | null
+  leadUrl: string
+}): EmailContent {
+  const message = (input.message ?? '').trim()
+
+  return {
+    subject: `Nowe zapytanie o sesję — ${input.name}`,
+    html: `
+      <p><strong>${escapeHtml(input.name)}</strong> wysłał(a) zapytanie przez formularz na stronie.</p>
+      <p>
+        E-mail: <a href="mailto:${escapeHtml(input.email)}">${escapeHtml(input.email)}</a><br/>
+        Telefon: ${input.phone ? `<a href="tel:${escapeHtml(input.phone)}">${escapeHtml(input.phone)}</a>` : 'nie podano'}
+      </p>
+      ${message ? `<p style="white-space: pre-line;">${escapeHtml(message)}</p>` : ''}
+      <p>Odpowiedz na tę wiadomość, żeby napisać bezpośrednio do tej osoby, albo <a href="${input.leadUrl}">otwórz zapytanie w panelu</a> i przygotuj ofertę.</p>
+    `,
+  }
+}

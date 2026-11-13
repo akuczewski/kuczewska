@@ -10,7 +10,7 @@ import { type SelectedPhotoDoc, buildSelectionSummary, checkCanSubmitSelection }
  * locks hearts and notes in firestore.rules) and the photographer gets the
  * list of file names by e-mail.
  */
-export const submitSelection = onCall({ region: 'europe-west1', secrets: ['RESEND_API_KEY'] }, async (request) => {
+export const submitSelection = onCall({ region: 'europe-west1', secrets: ['RESEND_API_KEY', 'ADMIN_NOTIFY_EMAIL'] }, async (request) => {
   const { sessionId } = (request.data ?? {}) as { sessionId?: unknown }
   if (typeof sessionId !== 'string' || sessionId.length === 0 || sessionId.includes('/')) {
     throw new HttpsError('invalid-argument', 'Brak identyfikatora sesji.')

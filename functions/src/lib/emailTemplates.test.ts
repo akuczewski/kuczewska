@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildContractEmail,
+  buildNewLeadEmail,
   buildOfferEmail,
   buildPasswordSetupEmail,
   buildSelectionSubmittedEmail,
@@ -77,5 +78,36 @@ describe('buildSelectionSubmittedEmail', () => {
 
     expect(email.html).not.toContain('<img src=x')
     expect(email.html).toContain('&lt;img src=x')
+  })
+})
+
+describe('buildNewLeadEmail', () => {
+  const base = {
+    name: 'Jan Kowalski',
+    email: 'jan@example.com',
+    phone: '500 600 700',
+    message: 'Rodzaj nieruchomości: Dom\nMiejscowość: Ełk',
+    leadUrl: 'https://kuczewska.com/#/admin/leads/lead-1',
+  }
+
+  it('gives the photographer the contact details, the message and a link to the lead', () => {
+    const email = buildNewLeadEmail(base)
+
+    expect(email.subject).toBe('Nowe zapytanie o sesję — Jan Kowalski')
+    expect(email.html).toContain('mailto:jan@example.com')
+    expect(email.html).toContain('tel:500 600 700')
+    expect(email.html).toContain('Miejscowość: Ełk')
+    expect(email.html).toContain('https://kuczewska.com/#/admin/leads/lead-1')
+  })
+
+  it('says so when no phone was given', () => {
+    expect(buildNewLeadEmail({ ...base, phone: null }).html).toContain('nie podano')
+  })
+
+  it('escapes everything typed into the public form', () => {
+    const email = buildNewLeadEmail({ ...base, name: '<b>x</b>', message: '<script>alert(1)</script>' })
+
+    expect(email.html).not.toContain('<script>')
+    expect(email.html).not.toContain('<b>x</b>')
   })
 })

@@ -17,11 +17,8 @@
 
   <!-- Resource Hints for Performance -->
   <link rel="preconnect" href="https://cdn.sanity.io">
-  <link rel="preconnect" href="https://eu9o3lpb.apicdn.sanity.io" crossorigin>
+  <link rel="preconnect" href="https://eu9o3lpb.apicdn.sanity.io">
   <!--hero-preload-->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="image" href="/logo-kuczewska.png">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -38,16 +35,44 @@
     content="Fotografia wnętrz, która sprzedaje i wynajmuje. Zobacz realizacje i umów sesję zdjęciową.">
   <meta property="twitter:image" content="https://kuczewska.com/og-image.jpg">
 
-  <!-- Google Fonts: Barlow Semi Condensed + Raleway -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@300;400;500&family=Raleway:wght@400;500;600&display=swap"
-    rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@300;400;500&family=Raleway:wght@400;500;600&display=swap"
-      rel="stylesheet">
-  </noscript>
 
+  <!-- Typefaces load right after the hero photo is on screen, so on a slow
+       connection the photo is never queued behind 120 kB of fonts. Text shows
+       at once in a width-matched fallback. -->
+  <script>
+    (function () {
+      var done = false;
+      function loadFonts() {
+        if (done) return;
+        done = true;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/fonts/fonts.css';
+        document.head.appendChild(link);
+      }
+      try {
+        if (PerformanceObserver.supportedEntryTypes.indexOf('largest-contentful-paint') < 0) throw 0;
+        new PerformanceObserver(function (list, observer) {
+          var entries = list.getEntries();
+          for (var i = 0; i < entries.length; i++) {
+            var el = entries[i].element;
+            // Wait for the hero photo itself; if the page has none, any paint will do.
+            if ((el && el.id === 'hero-img') || !document.getElementById('hero-img')) {
+              observer.disconnect();
+              loadFonts();
+              return;
+            }
+          }
+        }).observe({ type: 'largest-contentful-paint', buffered: true });
+        setTimeout(loadFonts, 2000);
+      } catch (e) {
+        loadFonts();
+      }
+    })();
+  </script>
+  <noscript>
+    <link rel="stylesheet" href="/fonts/fonts.css">
+  </noscript>
   <!--structured-data-->
 </head>
 

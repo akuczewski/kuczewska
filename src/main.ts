@@ -463,13 +463,16 @@ function afterHeroPainted(task: () => void) {
 
   const supported = typeof PerformanceObserver !== 'undefined'
     && PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint');
-  if (!supported) {
+  const heroInPage = Boolean(document.getElementById('hero-img')?.getAttribute('src'));
+  if (!supported || !heroInPage) {
     requestAnimationFrame(() => setTimeout(start, 0));
     return;
   }
 
   const observer = new PerformanceObserver((list) => {
-    if (list.getEntries().length > 0) {
+    // The first entry is often a line of text; wait for the photo itself.
+    const heroPainted = list.getEntries().some((entry) => (entry as any).element?.id === 'hero-img');
+    if (heroPainted) {
       observer.disconnect();
       start();
     }
@@ -478,7 +481,7 @@ function afterHeroPainted(task: () => void) {
   setTimeout(() => {
     observer.disconnect();
     start();
-  }, 2500);
+  }, 2000);
 }
 
 // --- Background Data Updates ---

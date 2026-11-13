@@ -1,3 +1,18 @@
+/* Stand-ins shown until the real typefaces arrive (they load right after the
+   hero photo). Scaled to the same text width, so lines do not re-wrap when
+   the swap happens. */
+@font-face {
+  font-family: 'Barlow Fallback';
+  src: local('Arial'), local('Roboto'), local('Helvetica Neue');
+  size-adjust: 86%;
+}
+
+@font-face {
+  font-family: 'Raleway Fallback';
+  src: local('Arial'), local('Roboto'), local('Helvetica Neue');
+  size-adjust: 103.5%;
+}
+
 /* ==========================================================================
    Kuczewska Fotografia — strona główna.
    Paleta i kroje nawiązują do dotychczasowej strony na Wix: biel, grafit,
@@ -14,8 +29,8 @@
   --action-deep: #0a55d1;
   --danger: #b3261e;
 
-  --font-display: 'Barlow Semi Condensed', 'DIN Next', 'Arial Narrow', sans-serif;
-  --font-body: 'Raleway', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Barlow Semi Condensed', 'Barlow Fallback', 'Arial Narrow', sans-serif;
+  --font-body: 'Raleway', 'Raleway Fallback', 'Helvetica Neue', Arial, sans-serif;
 
   --header-h: 72px;
   --section-y: clamp(72px, 10vw, 136px);
@@ -102,7 +117,7 @@ body.app-dark {
 }
 
 body.app-dark h1 {
-  font-weight: 400;
+  font-weight: 300;
 }
 
 /* --------------------------------------------------------------------------
@@ -444,7 +459,7 @@ body.app-dark h1 {
 
 .facts dt {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 300;
   font-size: clamp(1.25rem, 2vw, 1.6rem);
   line-height: 1.2;
 }
@@ -522,7 +537,7 @@ body.app-dark h1 {
 
 .tile-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 500;
   font-size: clamp(1.45rem, 2.4vw, 2.1rem);
   line-height: 1.15;
 }
@@ -636,7 +651,7 @@ body.app-dark h1 {
   padding: 20px 0;
   font-family: var(--font-display);
   font-size: 1.4rem;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.25;
   cursor: pointer;
   list-style: none;

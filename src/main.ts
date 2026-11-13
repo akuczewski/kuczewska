@@ -38,7 +38,19 @@ function esc(value: unknown): string {
 /** Sanity CDN images get resized/cropped on the fly; local fallbacks pass through. */
 function img(url: string, w: number, h?: number): string {
   if (!url || !url.startsWith('https://cdn.sanity.io')) return url;
-  return `${url}?auto=format&q=75&w=${w}${h ? `&h=${h}&fit=crop` : ''}`;
+  return `${url}?auto=format&q=70&w=${w}${h ? `&h=${h}&fit=crop` : ''}`;
+}
+
+/**
+ * src + srcset + sizes for a CMS photo, so each screen downloads a file close
+ * to the size it is actually shown at (a phone does not need the desktop one).
+ */
+function responsive(url: string, widths: number[], sizes: string, square = false): string {
+  const largest = widths[widths.length - 1]!;
+  const src = img(url, largest, square ? largest : undefined);
+  if (!url || !url.startsWith('https://cdn.sanity.io')) return `src="${esc(src)}"`;
+  const srcset = widths.map((w) => `${img(url, w, square ? w : undefined)} ${w}w`).join(', ');
+  return `src="${esc(src)}" srcset="${esc(srcset)}" sizes="${sizes}"`;
 }
 
 function setLanguage(lang: string) {
@@ -476,7 +488,7 @@ function renderWall(data: any[]) {
     return `
       <div class="wall-block reveal">
         <a href="${href}" class="tile tile-cover">
-          <img src="${img(item.imageUrl, 1200, 1200)}" alt="${title}" loading="lazy">
+          <img ${responsive(item.imageUrl, [480, 720, 960, 1200], '(max-width: 640px) 100vw, 50vw', true)} alt="${title}" loading="lazy">
           <span class="tile-label">
             <span class="tile-title">${title}</span>
             <span class="tile-meta">${esc(item.location || '')}</span>
@@ -485,7 +497,7 @@ function renderWall(data: any[]) {
         </a>
         ${smalls.map((url) => `
           <a href="${href}" class="tile${!isLast && smalls.length < 4 ? ' tile-tall' : ''}" tabindex="-1" aria-hidden="true">
-            <img src="${img(url, 640, 640)}" alt="" loading="lazy">
+            <img ${responsive(url, [240, 360, 480, 640], '(max-width: 640px) 50vw, 25vw', true)} alt="" loading="lazy">
           </a>`).join('')}
         ${isLast ? `
           <a href="#contact" class="tile tile-cta">
@@ -525,7 +537,7 @@ function renderAbout(about: any) {
 
   const imgContainer = document.getElementById('about-image-container');
   if (imgContainer) {
-    imgContainer.innerHTML = `<img src="${img(about?.imageUrl || '/profile.png', 900)}" alt="${t('about.imageAlt')}" class="about-img" loading="lazy">`;
+    imgContainer.innerHTML = `<img ${responsive(about?.imageUrl || '/profile.png', [420, 640, 900], '(max-width: 900px) 420px, 40vw')} alt="${t('about.imageAlt')}" class="about-img" loading="lazy">`;
   }
 
   const statsContainer = document.getElementById('about-stats');
@@ -585,7 +597,7 @@ async function showProjectModal(slug: string) {
       <div class="gallery-grid">
         ${project.gallery?.map((image: any) => `
           <div class="gallery-item">
-            <img src="${img(image.url, 1000)}" alt="${esc(image.alt || projectTitle)}" loading="lazy">
+            <img ${responsive(image.url, [480, 800, 1200], '(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw')} alt="${esc(image.alt || projectTitle)}" loading="lazy">
           </div>`).join('') || `<p>${t('portfolio.empty')}</p>`}
       </div>
       <div class="modal-end">

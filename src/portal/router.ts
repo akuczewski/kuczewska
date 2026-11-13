@@ -1,3 +1,4 @@
+import '../app.css'
 import { getCurrentUser, signIn } from '../lib/auth'
 import { saveBlobAs } from '../lib/download'
 import { submitSelection } from '../lib/functionsClient'

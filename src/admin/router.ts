@@ -1,3 +1,4 @@
+import '../app.css'
 import { createClientAccount, sendOfferEmail } from '../lib/functionsClient'
 import { getCurrentUser, isAdmin, signIn } from '../lib/auth'
 import { listBookingsForLead } from '../lib/bookings'

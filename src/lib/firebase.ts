@@ -1,49 +1,18 @@
-import { type FirebaseApp, initializeApp } from 'firebase/app'
 import { type Auth, connectAuthEmulator, getAuth } from 'firebase/auth'
 import { type Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
 import { type FirebaseStorage, connectStorageEmulator, getStorage } from 'firebase/storage'
 import { type Functions, connectFunctionsEmulator, getFunctions } from 'firebase/functions'
 
-const useEmulators = import.meta.env.DEV || import.meta.env.MODE === 'test'
+import { getFirebaseApp, usesEmulators } from './firebaseApp'
 
-/** True in local dev and tests — nothing leaves the machine. */
-export const usesEmulators = useEmulators
+export { getFirebaseApp, usesEmulators }
 
-// Local development and tests talk only to the emulators, under a throwaway
-// project id, so nothing done locally can touch real client data.
-const emulatorConfig = {
-  apiKey: 'demo-api-key',
-  authDomain: 'kuczewska-dev.firebaseapp.com',
-  projectId: 'kuczewska-dev',
-  storageBucket: 'kuczewska-dev.appspot.com',
-}
+const useEmulators = usesEmulators
 
-// Production build. These values identify the project to the browser and are
-// public by design — access is guarded by firestore.rules / storage.rules.
-const productionConfig = {
-  apiKey: 'AIzaSyAOCzlBFUajiLVpYu4CXKDe_2ovsDeFzjc',
-  authDomain: 'kuczewska-ee655.firebaseapp.com',
-  projectId: 'kuczewska-ee655',
-  storageBucket: 'kuczewska-ee655.firebasestorage.app',
-  messagingSenderId: '1046822170248',
-  appId: '1:1046822170248:web:02dc88cb720eff40e2793d',
-  measurementId: 'G-9BC1P1LBRZ',
-}
-
-const firebaseConfig = useEmulators ? emulatorConfig : productionConfig
-
-let app: FirebaseApp | undefined
 let auth: Auth | undefined
 let db: Firestore | undefined
 let storage: FirebaseStorage | undefined
 let functions: Functions | undefined
-
-export function getFirebaseApp(): FirebaseApp {
-  if (!app) {
-    app = initializeApp(firebaseConfig)
-  }
-  return app
-}
 
 export function getFirebaseAuth(): Auth {
   if (!auth) {

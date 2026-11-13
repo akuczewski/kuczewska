@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('./firebase', () => ({ getFirebaseApp: () => ({}), usesEmulators: true }))
+vi.mock('./firebaseApp', () => ({ getFirebaseApp: () => ({}), usesEmulators: true }))
 
 const { describeClick, getConsent, saveConsent, track } = await import('./analytics')
 

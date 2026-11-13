@@ -1,8 +1,7 @@
 import './style.css'
-import './app.css'
 import { getPortfolioItems, getAboutPage, getSiteSettings, getProjectBySlug } from './sanity'
 import { describeClick, getConsent, saveConsent, startAnalyticsIfConsented, track } from './lib/analytics'
-import { submitContactFormLead } from './lib/leads'
+import { heroSrc, heroSrcset, pickHeroUrl } from './lib/heroImage'
 import { localizedTitle } from './lib/titleTranslation'
 import { translations } from './translations'
 
@@ -39,11 +38,6 @@ function esc(value: unknown): string {
 function img(url: string, w: number, h?: number): string {
   if (!url || !url.startsWith('https://cdn.sanity.io')) return url;
   return `${url}?auto=format&q=75&w=${w}${h ? `&h=${h}&fit=crop` : ''}`;
-}
-
-function isLandscape(url: string): boolean {
-  const match = /-(\d+)x(\d+)\.\w+$/.exec(url || '');
-  return match ? Number(match[1]) > Number(match[2]) : false;
 }
 
 function setLanguage(lang: string) {
@@ -119,6 +113,9 @@ function renderHomeShell(appElement: HTMLElement) {
   const steps: Array<{ title: string, text: string }> = tr.process.steps;
   const facts: Array<{ value: string, label: string }> = tr.facts;
   const types: string[] = tr.contact.types;
+
+  // Keep the hero photo that came with the HTML: re-creating it would restart its download.
+  const prebuiltHero = appElement.querySelector<HTMLImageElement>('#hero-img');
 
   appElement.innerHTML = `
     <header class="site-header">
@@ -300,6 +297,11 @@ function renderHomeShell(appElement: HTMLElement) {
     </div>
   `;
 
+  if (prebuiltHero) {
+    prebuiltHero.alt = t('hero.imageAlt');
+    appElement.querySelector('.hero-photo')!.replaceChildren(prebuiltHero);
+  }
+
   // Language switcher
   appElement.querySelectorAll<HTMLButtonElement>('.lang-switcher button').forEach((button) => {
     button.addEventListener('click', () => setLanguage(button.dataset.lang!));
@@ -384,6 +386,8 @@ function initContactForm() {
     try {
       // Honeypot: bots fill the hidden field; real visitors never see it.
       if (!field('website')) {
+        // Firebase is only downloaded when someone actually sends the form.
+        const { submitContactFormLead } = await import('./lib/leads');
         await submitContactFormLead({ name, email, phone: field('phone') || null, message });
         // The conversion. No personal data — only what kind of property it was.
         track('generate_lead', { property_type: field('type') || 'nie podano', has_phone: Boolean(field('phone')) });
@@ -415,9 +419,14 @@ const fallbackPortfolio = [
 
 function setHeroImage(url: string) {
   const heroImg = document.getElementById('hero-img') as HTMLImageElement | null;
-  if (!heroImg || !url) return;
+  // Already showing this photo (put into the HTML at build time)? Leave it alone.
+  if (!heroImg || !url || heroImg.dataset.source === url) return;
+  heroImg.dataset.source = url;
+  heroImg.classList.remove('loaded');
   heroImg.addEventListener('load', () => heroImg.classList.add('loaded'), { once: true });
-  heroImg.src = img(url, 1920);
+  heroImg.sizes = '100vw';
+  heroImg.srcset = heroSrcset(url);
+  heroImg.src = heroSrc(url);
 }
 
 // --- Background Data Updates ---
@@ -438,9 +447,7 @@ function loadHomeData() {
       // would vanish on the white header. The black wordmark ships in /public instead.
     }
 
-    const heroSource = settings?.heroImageUrl
-      || data.find((item) => isLandscape(item.imageUrl))?.imageUrl
-      || (items && items.length > 0 ? data[0].imageUrl : '/hero.png');
+    const heroSource = pickHeroUrl(settings?.heroImageUrl, items ?? []) || '/hero.png';
     setHeroImage(heroSource);
 
     renderWall(data);

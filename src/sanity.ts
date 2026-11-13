@@ -1,22 +1,24 @@
-import { createClient } from '@sanity/client'
-import imageUrlBuilder from '@sanity/image-url'
+/**
+ * Read-only content queries against the Sanity HTTP API. Plain fetch on
+ * purpose: the official client library is far larger than these four
+ * queries need, and it was slowing down the first load on phones.
+ */
+const QUERY_URL = 'https://eu9o3lpb.apicdn.sanity.io/v2023-05-03/data/query/production'
 
-export const client = createClient({
-  projectId: 'eu9o3lpb',
-  dataset: 'production',
-  useCdn: false, // Set to false to see changes immediately
-  apiVersion: '2023-05-03',
-})
-
-const builder = imageUrlBuilder(client)
-
-export function urlFor(source: any) {
-  return builder.image(source)
+async function query(groq: string, params: Record<string, unknown> = {}): Promise<any> {
+  const url = new URL(QUERY_URL)
+  url.searchParams.set('query', groq)
+  for (const [name, value] of Object.entries(params)) {
+    url.searchParams.set(`$${name}`, JSON.stringify(value))
+  }
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Sanity query failed: ${response.status}`)
+  return (await response.json()).result
 }
 
 export async function getPortfolioItems() {
   try {
-    const items = await client.fetch(`*[_type == "portfolioItem" && showOnHome == true]{
+    const items = await query(`*[_type == "portfolioItem" && showOnHome == true]{
       title, title_en, title_es,
       location,
       "slug": slug.current,
@@ -33,7 +35,7 @@ export async function getPortfolioItems() {
 
 export async function getProjectBySlug(slug: string) {
   try {
-    const project = await client.fetch(`*[_type == "portfolioItem" && slug.current == $slug][0]{
+    const project = await query(`*[_type == "portfolioItem" && slug.current == $slug][0]{
       title, title_en, title_es,
       location,
       description,
@@ -52,7 +54,7 @@ export async function getProjectBySlug(slug: string) {
 
 export async function getAboutPage() {
   try {
-    const about = await client.fetch(`*[_type == "aboutPage"][0]{
+    const about = await query(`*[_type == "aboutPage"][0]{
       bio, bio_en, bio_es,
       "imageUrl": profileImage.asset->url,
       stats
@@ -66,7 +68,7 @@ export async function getAboutPage() {
 
 export async function getSiteSettings() {
   try {
-    const settings = await client.fetch(`*[_type == "siteSettings"][0]{
+    const settings = await query(`*[_type == "siteSettings"][0]{
       logoText,
       "logoImageUrl": logoImage.asset->url,
       heroTitle, heroTitle_en, heroTitle_es,

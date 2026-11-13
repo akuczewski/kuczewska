@@ -4,7 +4,6 @@
  * Nothing is loaded and no cookie is set until the visitor agrees — analytics
  * cookies need consent in the EU. The portal and the CRM are never tracked.
  */
-import { getFirebaseApp, usesEmulators } from './firebase'
 
 export type Consent = 'granted' | 'denied' | null
 export type EventParams = Record<string, string | number | boolean | undefined>
@@ -39,6 +38,8 @@ let senderPromise: Promise<Sender | null> | null = null
 function loadSender(): Promise<Sender | null> {
   if (!senderPromise) {
     senderPromise = (async (): Promise<Sender | null> => {
+      // Loaded on demand: Firebase stays out of the home page's first download.
+      const { getFirebaseApp, usesEmulators } = await import('./firebaseApp')
       if (usesEmulators) {
         return (name, params) => console.debug('[analytics]', name, params ?? {})
       }

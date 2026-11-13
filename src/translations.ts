@@ -92,7 +92,7 @@ export const translations: any = {
                 { q: 'Jakie nieruchomości fotografuję?', a: 'Mieszkania i domy na sprzedaż lub wynajem, apartamenty na wynajem krótkoterminowy, hotele i pensjonaty, lokale usługowe oraz wnętrza dla projektantów i architektów.' },
                 { q: 'Ile kosztuje sesja zdjęciowa nieruchomości?', a: 'Cena zależy od rodzaju i wielkości nieruchomości oraz liczby zdjęć. Wycena jest bezpłatna i do niczego nie zobowiązuje: po krótkim zapytaniu dostajesz mailem ofertę z konkretnym pakietem i ceną.' },
                 { q: 'Jak umówić sesję zdjęciową?', a: 'Wypełnij krótki formularz na stronie kuczewska.com albo zadzwoń pod numer +48 511 017 427. Po akceptacji oferty podpisujesz umowę online i wybierasz termin sesji z kalendarza.' },
-                { q: 'Jak wygląda odbiór zdjęć po sesji?', a: 'Po sesji logujesz się do panelu klienta, zaznaczasz ujęcia do obróbki i możesz dopisać uwagi. Gotowe zdjęcia pobierasz z tego samego panelu.' },
+                { q: 'Jak wygląda odbiór zdjęć po sesji?', a: 'Po sesji logujesz się do panelu klienta, zaznaczasz ujęcia do obróbki i możesz dopisać uwagi. Gotowe zdjęcia pobierasz z tego samego panelu albo wysyłam je na podany adres e-mail.' },
                 { q: 'Kto wykonuje zdjęcia?', a: 'Nazywam się Anka Kuczewska. Od ponad 8 lat fotografuję nieruchomości i wnętrza dla klientów indywidualnych i biznesowych — właścicieli, agentów nieruchomości, hoteli i projektantów wnętrz.' }
             ]
         },
@@ -205,7 +205,7 @@ export const translations: any = {
                 { q: 'What kinds of property do I photograph?', a: 'Flats and houses for sale or rent, short-term rental apartments, hotels and guesthouses, commercial spaces, and interiors for designers and architects.' },
                 { q: 'How much does a property photo session cost?', a: 'The price depends on the type and size of the property and the number of photos. Quotes are free and come with no obligation: after a short enquiry you receive an offer by email with a specific package and price.' },
                 { q: 'How do I book a photo session?', a: 'Fill in the short form at kuczewska.com or call +48 511 017 427. Once you accept the offer, you sign the contract online and pick the session date from a calendar.' },
-                { q: 'How do I receive the photos?', a: 'After the session you log in to the client panel, mark the shots you want retouched and can add notes. You download the finished photos from the same panel.' },
+                { q: 'How do I receive the photos?', a: 'After the session you log in to the client panel, mark the shots you want retouched and can add notes. You download the finished photos from the same panel, or I send them to the email address you gave.' },
                 { q: 'Who takes the photos?', a: 'My name is Anka Kuczewska. I have been photographing properties and interiors for over 8 years, for private and business clients — owners, estate agents, hotels and interior designers.' }
             ]
         },
@@ -318,7 +318,7 @@ export const translations: any = {
                 { q: '¿Qué tipos de inmuebles fotografío?', a: 'Pisos y casas en venta o alquiler, apartamentos turísticos, hoteles y pensiones, locales comerciales e interiores para diseñadores y arquitectos.' },
                 { q: '¿Cuánto cuesta una sesión de fotos de un inmueble?', a: 'El precio depende del tipo y el tamaño del inmueble y del número de fotos. El presupuesto es gratuito y sin compromiso: tras una breve consulta recibes por correo una oferta con un paquete y un precio concretos.' },
                 { q: '¿Cómo reservo una sesión?', a: 'Rellena el formulario corto en kuczewska.com o llama al +48 511 017 427. Tras aceptar la oferta, firmas el contrato en línea y eliges la fecha en un calendario.' },
-                { q: '¿Cómo recibo las fotos?', a: 'Después de la sesión entras en el panel de cliente, marcas las tomas que quieres retocar y puedes añadir notas. Las fotos terminadas se descargan desde el mismo panel.' },
+                { q: '¿Cómo recibo las fotos?', a: 'Después de la sesión entras en el panel de cliente, marcas las tomas que quieres retocar y puedes añadir notas. Las fotos terminadas se descargan desde el mismo panel o te las envío al correo que indicaste.' },
                 { q: '¿Quién hace las fotos?', a: 'Me llamo Anka Kuczewska. Llevo más de 8 años fotografiando inmuebles e interiores para clientes particulares y empresas — propietarios, agentes inmobiliarios, hoteles e interioristas.' }
             ]
         },

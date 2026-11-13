@@ -99,7 +99,6 @@ export function buildStaticSections(input: {
           </ol>
         </div>
       </section>
-${faqSection(tr)}
 
       <section id="about" class="about-section">
         <div class="container">
@@ -120,7 +119,8 @@ ${faqSection(tr)}
             <a class="contact-mail" href="${INSTAGRAM_URL}">Instagram @wnetrzanka</a>
           </div>
         </div>
-      </section>`
+      </section>
+${faqSection(tr)}`
 }
 
 /** schema.org description of the business and its FAQ, as JSON-LD script tags. */

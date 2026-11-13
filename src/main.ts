@@ -106,7 +106,10 @@ async function router() {
   const freshRender = !document.getElementById('project-modal');
   if (freshRender) {
     renderHomeShell(appElement);
-    loadHomeData();
+    // A visitor who opened a project link needs the data now; otherwise let
+    // the hero photo reach the screen before anything else competes with it.
+    if (path.startsWith('#project/')) loadHomeData();
+    else afterHeroPainted(loadHomeData);
   }
 
   if (path.startsWith('#project/')) {
@@ -205,8 +208,6 @@ function renderHomeShell(appElement: HTMLElement) {
         </div>
       </section>
 
-      ${faqSection(tr, { animated: true })}
-
       <section id="about" class="about-section">
         <div class="container about-container">
           <div class="about-visual reveal" id="about-image-container"></div>
@@ -276,6 +277,7 @@ function renderHomeShell(appElement: HTMLElement) {
           </div>
         </div>
       </section>
+      ${faqSection(tr, { animated: true })}
     </main>
 
     <footer class="site-footer">
@@ -445,6 +447,40 @@ function setHeroImage(url: string) {
   heroImg.src = heroSrc(url);
 }
 
+/**
+ * Runs `task` once the hero photo is on screen (the browser's "largest
+ * contentful paint"). Until then the phone's connection belongs to the hero:
+ * CMS queries and the portfolio photos further down the page can wait a
+ * moment. Falls back to a short timer where the browser cannot tell us.
+ */
+function afterHeroPainted(task: () => void) {
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    task();
+  };
+
+  const supported = typeof PerformanceObserver !== 'undefined'
+    && PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint');
+  if (!supported) {
+    requestAnimationFrame(() => setTimeout(start, 0));
+    return;
+  }
+
+  const observer = new PerformanceObserver((list) => {
+    if (list.getEntries().length > 0) {
+      observer.disconnect();
+      start();
+    }
+  });
+  observer.observe({ type: 'largest-contentful-paint', buffered: true });
+  setTimeout(() => {
+    observer.disconnect();
+    start();
+  }, 2500);
+}
+
 // --- Background Data Updates ---
 function loadHomeData() {
   // Settings + portfolio together: the hero photo comes from settings, or else from a landscape cover.
@@ -488,7 +524,7 @@ function renderWall(data: any[]) {
     return `
       <div class="wall-block reveal">
         <a href="${href}" class="tile tile-cover">
-          <img ${responsive(item.imageUrl, [480, 720, 960, 1200], '(max-width: 640px) 100vw, 50vw', true)} alt="${title}" loading="lazy">
+          <img ${responsive(item.imageUrl, [400, 560, 760, 1000, 1200], '(max-width: 640px) 100vw, 50vw', true)} alt="${title}" loading="lazy">
           <span class="tile-label">
             <span class="tile-title">${title}</span>
             <span class="tile-meta">${esc(item.location || '')}</span>
@@ -497,7 +533,7 @@ function renderWall(data: any[]) {
         </a>
         ${smalls.map((url) => `
           <a href="${href}" class="tile${!isLast && smalls.length < 4 ? ' tile-tall' : ''}" tabindex="-1" aria-hidden="true">
-            <img ${responsive(url, [240, 360, 480, 640], '(max-width: 640px) 50vw, 25vw', true)} alt="" loading="lazy">
+            <img ${responsive(url, [200, 290, 380, 520, 640], '(max-width: 640px) 50vw, 25vw', true)} alt="" loading="lazy">
           </a>`).join('')}
         ${isLast ? `
           <a href="#contact" class="tile tile-cta">

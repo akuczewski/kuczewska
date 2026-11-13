@@ -616,7 +616,7 @@ body.app-dark h1 {
    Najczęstsze pytania
    -------------------------------------------------------------------------- */
 .faq-section {
-  padding: 0 0 var(--section-y);
+  padding: var(--section-y) 0 calc(var(--section-y) / 2);
 }
 
 .faq-list {

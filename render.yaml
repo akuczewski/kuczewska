@@ -8,6 +8,17 @@ services:
     buildCommand: npm ci --include=dev && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
+    routes:
+      # Addresses of the former Wix site that search engines still know.
+      - type: redirect
+        source: /portfolio
+        destination: /#portfolio
+      - type: redirect
+        source: /o-mnie
+        destination: /#about
+      - type: redirect
+        source: /kontakt
+        destination: /#contact
     headers:
       - path: /assets/*
         name: Cache-Control

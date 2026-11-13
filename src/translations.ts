@@ -73,6 +73,29 @@ export const translations: any = {
             successText: 'Dziękuję! Odezwę się z ofertą i wolnymi terminami na adres',
             error: 'Nie udało się wysłać zapytania. Spróbuj ponownie albo zadzwoń:'
         },
+        meta: {
+            title: 'Fotografia nieruchomości i wnętrz — Białystok, Warszawa, Ełk | Kuczewska',
+            description: 'Anna Kuczewska — profesjonalna fotografia nieruchomości i wnętrz w Białymstoku, Warszawie i Ełku. Sesje zdjęciowe mieszkań, domów, apartamentów na wynajem, hoteli i lokali. Umów sesję online.'
+        },
+        services: [
+            'Fotografia nieruchomości na sprzedaż i wynajem',
+            'Fotografia wnętrz mieszkań i domów',
+            'Fotografia apartamentów na wynajem krótkoterminowy',
+            'Fotografia hoteli i pensjonatów',
+            'Fotografia lokali usługowych',
+            'Fotografia wnętrz dla projektantów i architektów'
+        ],
+        faq: {
+            title: 'Najczęstsze pytania',
+            items: [
+                { q: 'Gdzie wykonuję sesje zdjęciowe nieruchomości?', a: 'Fotografuję nieruchomości i wnętrza w Białymstoku, Warszawie, Ełku oraz w okolicach tych miast. Jeśli Twoja nieruchomość jest gdzie indziej, napisz — sprawdzę, czy mogę dojechać.' },
+                { q: 'Jakie nieruchomości fotografuję?', a: 'Mieszkania i domy na sprzedaż lub wynajem, apartamenty na wynajem krótkoterminowy, hotele i pensjonaty, lokale usługowe oraz wnętrza dla projektantów i architektów.' },
+                { q: 'Ile kosztuje sesja zdjęciowa nieruchomości?', a: 'Cena zależy od rodzaju i wielkości nieruchomości oraz liczby zdjęć. Wycena jest bezpłatna i do niczego nie zobowiązuje: po krótkim zapytaniu dostajesz mailem ofertę z konkretnym pakietem i ceną.' },
+                { q: 'Jak umówić sesję zdjęciową?', a: 'Wypełnij krótki formularz na stronie kuczewska.com albo zadzwoń pod numer +48 511 017 427. Po akceptacji oferty podpisujesz umowę online i wybierasz termin sesji z kalendarza.' },
+                { q: 'Jak wygląda odbiór zdjęć po sesji?', a: 'Po sesji logujesz się do panelu klienta, zaznaczasz ujęcia do obróbki i możesz dopisać uwagi. Gotowe zdjęcia pobierasz z tego samego panelu.' },
+                { q: 'Kto wykonuje zdjęcia?', a: 'Nazywam się Anka Kuczewska. Od ponad 8 lat fotografuję nieruchomości i wnętrza dla klientów indywidualnych i biznesowych — właścicieli, agentów nieruchomości, hoteli i projektantów wnętrz.' }
+            ]
+        },
         project: {
             back: 'Realizacje',
             close: 'Zamknij',
@@ -163,6 +186,29 @@ export const translations: any = {
             successText: 'Thank you! I\'ll reply with an offer and available dates to',
             error: 'The enquiry could not be sent. Try again or call:'
         },
+        meta: {
+            title: 'Real estate & interior photography — Białystok, Warsaw, Ełk | Kuczewska',
+            description: 'Anna Kuczewska — professional real estate and interior photography in Białystok, Warsaw and Ełk, Poland. Photo sessions of flats, houses, holiday rentals, hotels and commercial spaces. Book online.'
+        },
+        services: [
+            'Real estate photography for sale and rental listings',
+            'Interior photography of flats and houses',
+            'Photography of short-term rental apartments',
+            'Hotel and guesthouse photography',
+            'Photography of commercial spaces',
+            'Interior photography for designers and architects'
+        ],
+        faq: {
+            title: 'Frequently asked questions',
+            items: [
+                { q: 'Where do I photograph properties?', a: 'I photograph properties and interiors in Białystok, Warsaw, Ełk and the areas around these cities in Poland. If your property is somewhere else, write to me — I will check whether I can travel there.' },
+                { q: 'What kinds of property do I photograph?', a: 'Flats and houses for sale or rent, short-term rental apartments, hotels and guesthouses, commercial spaces, and interiors for designers and architects.' },
+                { q: 'How much does a property photo session cost?', a: 'The price depends on the type and size of the property and the number of photos. Quotes are free and come with no obligation: after a short enquiry you receive an offer by email with a specific package and price.' },
+                { q: 'How do I book a photo session?', a: 'Fill in the short form at kuczewska.com or call +48 511 017 427. Once you accept the offer, you sign the contract online and pick the session date from a calendar.' },
+                { q: 'How do I receive the photos?', a: 'After the session you log in to the client panel, mark the shots you want retouched and can add notes. You download the finished photos from the same panel.' },
+                { q: 'Who takes the photos?', a: 'My name is Anka Kuczewska. I have been photographing properties and interiors for over 8 years, for private and business clients — owners, estate agents, hotels and interior designers.' }
+            ]
+        },
         project: {
             back: 'Work',
             close: 'Close',
@@ -252,6 +298,29 @@ export const translations: any = {
             successTitle: 'Consulta enviada',
             successText: '¡Gracias! Te responderé con una oferta y fechas disponibles a',
             error: 'No se pudo enviar la consulta. Inténtalo de nuevo o llama:'
+        },
+        meta: {
+            title: 'Fotografía inmobiliaria y de interiores — Białystok, Varsovia, Ełk | Kuczewska',
+            description: 'Anna Kuczewska — fotografía profesional inmobiliaria y de interiores en Białystok, Varsovia y Ełk (Polonia). Sesiones de pisos, casas, apartamentos turísticos, hoteles y locales. Reserva en línea.'
+        },
+        services: [
+            'Fotografía inmobiliaria para venta y alquiler',
+            'Fotografía de interiores de pisos y casas',
+            'Fotografía de apartamentos turísticos',
+            'Fotografía de hoteles y pensiones',
+            'Fotografía de locales comerciales',
+            'Fotografía de interiores para diseñadores y arquitectos'
+        ],
+        faq: {
+            title: 'Preguntas frecuentes',
+            items: [
+                { q: '¿Dónde hago las sesiones de fotos?', a: 'Fotografío inmuebles e interiores en Białystok, Varsovia, Ełk y sus alrededores, en Polonia. Si tu inmueble está en otro lugar, escríbeme — comprobaré si puedo desplazarme.' },
+                { q: '¿Qué tipos de inmuebles fotografío?', a: 'Pisos y casas en venta o alquiler, apartamentos turísticos, hoteles y pensiones, locales comerciales e interiores para diseñadores y arquitectos.' },
+                { q: '¿Cuánto cuesta una sesión de fotos de un inmueble?', a: 'El precio depende del tipo y el tamaño del inmueble y del número de fotos. El presupuesto es gratuito y sin compromiso: tras una breve consulta recibes por correo una oferta con un paquete y un precio concretos.' },
+                { q: '¿Cómo reservo una sesión?', a: 'Rellena el formulario corto en kuczewska.com o llama al +48 511 017 427. Tras aceptar la oferta, firmas el contrato en línea y eliges la fecha en un calendario.' },
+                { q: '¿Cómo recibo las fotos?', a: 'Después de la sesión entras en el panel de cliente, marcas las tomas que quieres retocar y puedes añadir notas. Las fotos terminadas se descargan desde el mismo panel.' },
+                { q: '¿Quién hace las fotos?', a: 'Me llamo Anka Kuczewska. Llevo más de 8 años fotografiando inmuebles e interiores para clientes particulares y empresas — propietarios, agentes inmobiliarios, hoteles e interioristas.' }
+            ]
         },
         project: {
             back: 'Proyectos',

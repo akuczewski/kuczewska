@@ -2,6 +2,7 @@ import './style.css'
 import { getPortfolioItems, getAboutPage, getSiteSettings, getProjectBySlug } from './sanity'
 import { describeClick, getConsent, saveConsent, startAnalyticsIfConsented, track } from './lib/analytics'
 import { heroSrc, heroSrcset, pickHeroUrl } from './lib/heroImage'
+import { faqSection } from './lib/staticContent'
 import { localizedTitle } from './lib/titleTranslation'
 import { translations } from './translations'
 
@@ -84,8 +85,9 @@ async function router() {
     return;
   }
 
-  // Update HTML lang attribute for SEO
+  // Update HTML lang attribute and title for SEO
   document.documentElement.lang = currentLang;
+  document.title = t('meta.title');
 
   // The static shell in index.html has no modal — that is how we know the
   // full home page still needs rendering (first load or return from the portal).
@@ -190,6 +192,8 @@ function renderHomeShell(appElement: HTMLElement) {
           </div>
         </div>
       </section>
+
+      ${faqSection(tr, { animated: true })}
 
       <section id="about" class="about-section">
         <div class="container about-container">

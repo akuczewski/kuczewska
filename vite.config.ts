@@ -1,10 +1,15 @@
 import { defineConfig, type Plugin } from 'vite'
 import { heroSrc, heroSrcset, pickHeroUrl } from './src/lib/heroImage'
+import { buildStaticSections, buildStructuredData } from './src/lib/staticContent'
+import { translations } from './src/translations'
 
 const SANITY_QUERY_URL = 'https://eu9o3lpb.apicdn.sanity.io/v2023-05-03/data/query/production'
 const HERO_QUERY = `{
   "hero": *[_type == "siteSettings"][0].heroImage.asset->url,
-  "items": *[_type == "portfolioItem" && showOnHome == true]{ "imageUrl": image.asset->url }
+  "items": *[_type == "portfolioItem" && showOnHome == true]{
+    title, location, "slug": slug.current, "imageUrl": image.asset->url
+  },
+  "bio": *[_type == "aboutPage"][0].bio[]{ style, "text": array::join(children[].text, "") }
 }`
 
 /**
@@ -16,19 +21,34 @@ const HERO_QUERY = `{
  */
 function heroInHtml(): Plugin {
   return {
-    name: 'kuczewska-hero-in-html',
+    name: 'kuczewska-static-html',
     apply: 'build',
     async transformIndexHtml(html) {
       let preload = ''
       let image = ''
+      // Text and schema.org data for crawlers that do not run JavaScript.
+      // Built from the Polish copy; filled with CMS data when it is reachable.
+      const tr = translations.pl
+      let projects: Array<{ title: string; location?: string | null; slug: string }> = []
+      let bio: string[] = []
+      let heroUrl: string | null = null
       try {
         const response = await fetch(`${SANITY_QUERY_URL}?query=${encodeURIComponent(HERO_QUERY)}`, {
           signal: AbortSignal.timeout(10_000),
         })
         const { result } = (await response.json()) as {
-          result: { hero: string | null; items: Array<{ imageUrl: string | null }> }
+          result: {
+            hero: string | null
+            items: Array<{ title: string; location: string | null; slug: string; imageUrl: string | null }>
+            bio: Array<{ style: string; text: string }> | null
+          }
         }
+        projects = (result.items ?? []).filter((item) => item.title && item.slug)
+        bio = (result.bio ?? [])
+          .filter((block) => block.style === 'normal' && block.text?.trim())
+          .map((block) => block.text.trim())
         const url = pickHeroUrl(result.hero, result.items ?? [])
+        heroUrl = url
         if (url) {
           const srcset = heroSrcset(url)
           preload = `<link rel="preload" as="image" fetchpriority="high" href="${heroSrc(url)}" imagesrcset="${srcset}" imagesizes="100vw">`
@@ -37,7 +57,11 @@ function heroInHtml(): Plugin {
       } catch (error) {
         console.warn('[hero-in-html] CMS not reachable, building without a preloaded hero:', error)
       }
-      return html.replace('<!--hero-preload-->', preload).replace('<!--hero-img-->', image)
+      return html
+        .replace('<!--hero-preload-->', preload)
+        .replace('<!--hero-img-->', image)
+        .replace('<!--structured-data-->', buildStructuredData({ tr, imageUrl: heroUrl }))
+        .replace('<!--static-content-->', buildStaticSections({ tr, projects, bio }))
     },
   }
 }

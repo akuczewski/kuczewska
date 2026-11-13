@@ -1,6 +1,7 @@
 import './style.css'
 import './app.css'
 import { getPortfolioItems, getAboutPage, getSiteSettings, getProjectBySlug } from './sanity'
+import { describeClick, getConsent, saveConsent, startAnalyticsIfConsented, track } from './lib/analytics'
 import { submitContactFormLead } from './lib/leads'
 import { translations } from './translations'
 
@@ -269,9 +270,17 @@ function renderHomeShell(appElement: HTMLElement) {
           <a href="mailto:${EMAIL}">${EMAIL}</a>
           <a href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Instagram</a>
         </div>
-        <p>&copy; ${new Date().getFullYear()} ${t('footer.rights')}</p>
+        <p>&copy; ${new Date().getFullYear()} ${t('footer.rights')} · <button type="button" class="footer-cookies" id="cookie-settings">${t('footer.cookies')}</button></p>
       </div>
     </footer>
+
+    <div class="consent" id="consent" role="region" aria-label="${t('footer.cookies')}" hidden>
+      <p>${t('consent.text')}</p>
+      <div class="consent-actions">
+        <button type="button" class="btn btn-small btn-outline" data-consent="denied">${t('consent.reject')}</button>
+        <button type="button" class="btn btn-small btn-outline" data-consent="granted">${t('consent.accept')}</button>
+      </div>
+    </div>
 
     <div class="mobile-cta" id="mobile-cta">
       <a href="${PHONE_HREF}" class="btn btn-outline">${t('cta.call')}</a>
@@ -312,6 +321,25 @@ function renderHomeShell(appElement: HTMLElement) {
     mobileCta.classList.toggle('at-form', entry.isIntersecting);
   }, { threshold: 0.05 }).observe(document.getElementById('contact')!);
 
+  // Analytics consent: ask once, let the visitor change their mind from the footer.
+  const consentBox = document.getElementById('consent')!;
+  consentBox.hidden = getConsent() !== null;
+  consentBox.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const choice = button.dataset.consent as 'granted' | 'denied';
+      const changedToDenied = choice === 'denied' && getConsent() === 'granted';
+      saveConsent(choice);
+      consentBox.hidden = true;
+      if (changedToDenied) location.reload(); // drops the already loaded analytics script
+      else startAnalyticsIfConsented();
+    });
+  });
+  document.getElementById('cookie-settings')!.addEventListener('click', () => {
+    consentBox.hidden = false;
+    consentBox.querySelector<HTMLButtonElement>('button')?.focus();
+  });
+  startAnalyticsIfConsented();
+
   initContactForm();
   handleScroll();
 }
@@ -320,6 +348,9 @@ function renderHomeShell(appElement: HTMLElement) {
 function initContactForm() {
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const errorBox = document.getElementById('contact-error')!;
+
+  // "Started the form" vs "sent it" shows where enquiries are lost.
+  form.addEventListener('input', () => track('form_start'), { once: true });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -351,6 +382,8 @@ function initContactForm() {
       // Honeypot: bots fill the hidden field; real visitors never see it.
       if (!field('website')) {
         await submitContactFormLead({ name, email, phone: field('phone') || null, message });
+        // The conversion. No personal data — only what kind of property it was.
+        track('generate_lead', { property_type: field('type') || 'nie podano', has_phone: Boolean(field('phone')) });
       }
       document.getElementById('contact-card')!.innerHTML = `
         <div class="form-success" role="status" tabindex="-1">
@@ -361,6 +394,7 @@ function initContactForm() {
       document.querySelector<HTMLElement>('.form-success')?.focus();
     } catch (err) {
       console.warn('Lead submit failed:', err);
+      track('form_error');
       errorBox.innerHTML = `${t('contact.error')} <a href="${PHONE_HREF}">${PHONE_DISPLAY}</a>`;
       errorBox.hidden = false;
       btn.textContent = t('contact.submit');
@@ -573,6 +607,13 @@ function handleScroll() {
   document.querySelector('.site-header')?.classList.toggle('scrolled', window.scrollY > 8);
   document.getElementById('mobile-cta')?.classList.toggle('visible', window.scrollY > 420);
 }
+
+// Clicks that matter on the public site (booking buttons, phone, e-mail, projects).
+document.addEventListener('click', (event) => {
+  if (document.body.classList.contains('app-dark')) return; // portal & CRM are never tracked
+  const described = describeClick(event.target as Element | null);
+  if (described) track(described.name, described.params);
+});
 
 window.addEventListener('scroll', handleScroll, { passive: true });
 window.addEventListener('keydown', (e) => {

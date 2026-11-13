@@ -80,7 +80,13 @@ export const translations: any = {
             endTitle: 'Chcesz takie zdjęcia swojej nieruchomości?'
         },
         footer: {
-            rights: 'Kuczewska Fotografia'
+            rights: 'Kuczewska Fotografia',
+            cookies: 'Ustawienia cookies'
+        },
+        consent: {
+            text: 'Używam cookies analitycznych (Google Analytics), żeby wiedzieć, ile osób odwiedza stronę i co jest na niej przydatne. Zgadzasz się?',
+            accept: 'Zgadzam się',
+            reject: 'Nie zgadzam się'
         }
     },
     en: {
@@ -164,7 +170,13 @@ export const translations: any = {
             endTitle: 'Want photos like these of your property?'
         },
         footer: {
-            rights: 'Kuczewska Fotografia'
+            rights: 'Kuczewska Fotografia',
+            cookies: 'Cookie settings'
+        },
+        consent: {
+            text: 'I use analytics cookies (Google Analytics) to see how many people visit the site and what they find useful. Do you agree?',
+            accept: 'I agree',
+            reject: 'I do not agree'
         }
     },
     es: {
@@ -248,7 +260,13 @@ export const translations: any = {
             endTitle: '¿Quieres fotos así de tu inmueble?'
         },
         footer: {
-            rights: 'Kuczewska Fotografia'
+            rights: 'Kuczewska Fotografia',
+            cookies: 'Ajustes de cookies'
+        },
+        consent: {
+            text: 'Uso cookies analíticas (Google Analytics) para saber cuántas personas visitan la web y qué les resulta útil. ¿Estás de acuerdo?',
+            accept: 'Acepto',
+            reject: 'No acepto'
         }
     }
 };

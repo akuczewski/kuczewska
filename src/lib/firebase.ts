@@ -6,6 +6,9 @@ import { type Functions, connectFunctionsEmulator, getFunctions } from 'firebase
 
 const useEmulators = import.meta.env.DEV || import.meta.env.MODE === 'test'
 
+/** True in local dev and tests — nothing leaves the machine. */
+export const usesEmulators = useEmulators
+
 // Local development and tests talk only to the emulators, under a throwaway
 // project id, so nothing done locally can touch real client data.
 const emulatorConfig = {
@@ -24,6 +27,7 @@ const productionConfig = {
   storageBucket: 'kuczewska-ee655.firebasestorage.app',
   messagingSenderId: '1046822170248',
   appId: '1:1046822170248:web:02dc88cb720eff40e2793d',
+  measurementId: 'G-9BC1P1LBRZ',
 }
 
 const firebaseConfig = useEmulators ? emulatorConfig : productionConfig

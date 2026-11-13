@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+functions/lib
+functions/node_modules
+
+# Local tooling state — never commit (worktrees can hold other projects' files)
+.claude/
+studio-kuczewska/.sanity/
 
 # Editor directories and files
 .vscode/*

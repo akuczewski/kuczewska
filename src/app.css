@@ -1,0 +1,821 @@
+/* ==========================================================================
+   App shell — panel fotografki (CRM), portal klienta i publiczne widoki
+   ofert/umów/rezerwacji. Korzysta z tokenów zdefiniowanych w style.css
+   (body.app-dark): ta sama jasna paleta i kroje co strona główna.
+   ========================================================================== */
+
+.app-shell {
+  min-height: 100vh;
+  padding: 32px 24px 96px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.app-shell a {
+  color: var(--primary-color);
+}
+
+.app-shell a:hover {
+  color: var(--primary-light);
+}
+
+/* --- Top nav --- */
+.admin-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: max-content;
+  margin: 0 auto 40px;
+  padding: 8px;
+  border-radius: 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+}
+
+.admin-nav a {
+  padding: 8px 20px;
+  border-radius: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+
+.admin-nav a:hover {
+  color: var(--text-color);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* --- Content cards --- */
+.app-shell section {
+  background: var(--surface-color);
+  border: 1px solid var(--glass-border);
+  border-radius: 0;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+}
+
+.app-shell h1 {
+  font-size: 1.9rem;
+  margin-bottom: 8px;
+}
+
+.app-shell h2 {
+  font-size: 1.2rem;
+  margin: 28px 0 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.app-shell section > h2:first-of-type,
+.app-shell section > *:first-child + h2 {
+  border-top: none;
+  padding-top: 0;
+}
+
+.app-shell p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* --- Status badges --- */
+.status-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  background: var(--bg-color);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.status-badge--sent,
+.status-badge--offer_sent,
+.status-badge--pending,
+.status-badge--active {
+  background: rgba(17, 109, 255, 0.1);
+  color: var(--primary-light);
+}
+
+.status-badge--accepted,
+.status-badge--signed,
+.status-badge--finished,
+.status-badge--selection_done {
+  background: rgba(120, 200, 140, 0.15);
+  color: #1d6b34;
+}
+
+.status-badge--rejected,
+.status-badge--archived,
+.status-badge--inactive {
+  background: rgba(220, 90, 90, 0.15);
+  color: #b3261e;
+}
+
+/* --- Forms --- */
+.app-shell form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 480px;
+}
+
+.app-shell label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.app-shell label:has(input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--text-color);
+  gap: 10px;
+}
+
+.app-shell input:not([type='checkbox']),
+.app-shell textarea,
+.app-shell input[type='date'] {
+  width: 100%;
+  padding: 13px 16px;
+  background: #fff;
+  border: 1px solid #8c8b89;
+  border-radius: 0;
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  transition: var(--transition-fast);
+}
+
+.app-shell input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
+}
+
+.app-shell input:focus,
+.app-shell textarea:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 0;
+  border-color: var(--primary-color);
+}
+
+.app-shell textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* --- Buttons --- */
+.app-shell button {
+  align-self: flex-start;
+  padding: 12px 28px;
+  border-radius: 0;
+  border: none;
+  background: var(--primary-color);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.app-shell button:hover {
+  background: var(--primary-light);
+}
+
+.app-shell button:disabled {
+  background: var(--glass-border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.app-shell li button,
+.app-shell .status-badge + button {
+  align-self: auto;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-color);
+}
+
+.app-shell li button:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+  transform: none;
+}
+
+/* --- Lists (sessions, leads, packages, offers, contracts, bookings) --- */
+.app-shell ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.app-shell ul li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.app-shell ul li:last-child {
+  border-bottom: none;
+}
+
+.app-shell ul li p {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.lead-detail__empty {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* --- Lead detail header --- */
+.lead-detail__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.lead-detail__header h1 {
+  margin-bottom: 0;
+  flex-basis: 100%;
+}
+
+.lead-detail__archive {
+  margin-left: auto;
+  background: transparent !important;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted) !important;
+}
+
+.lead-detail__stage {
+  margin-top: 4px;
+}
+
+/* --- Photo grids (portal album / finished album) --- */
+.portal-album-grid,
+.portal-finished-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.portal-album-grid li,
+.portal-finished-grid li {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  border: none;
+}
+
+.portal-album-grid img,
+.portal-finished-grid img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 0;
+  border: 1px solid var(--glass-border);
+}
+
+.portal-album-grid label {
+  flex-direction: row;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+
+.portal-finished-grid a[download] {
+  align-self: flex-start;
+  padding: 6px 16px;
+  border-radius: 0;
+  border: 1px solid var(--glass-border);
+  font-size: 0.8rem;
+}
+
+/* --- Auth / login card --- */
+.portal-login {
+  max-width: 380px;
+  margin: 10vh auto 0;
+  background: var(--surface-color);
+  border: 1px solid var(--glass-border);
+  border-radius: 0;
+  padding: 40px;
+}
+
+.portal-login h1 {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.portal-login__error,
+.booking-calendar__error {
+  font-size: 0.85rem;
+  color: #b3261e;
+  background: rgba(220, 90, 90, 0.1);
+  border-left: 3px solid #b3261e;
+  padding: 10px 14px;
+  border-radius: 0;
+}
+
+/* --- Public booking flow (offer / contract / booking calendar) --- */
+.offer-view,
+.contract-view,
+.booking-calendar-view,
+.booking-message {
+  max-width: 640px;
+  margin: 8vh auto 0;
+}
+
+.offer-view__actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.offer-view__reject {
+  background: transparent !important;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted) !important;
+}
+
+.offer-view__total,
+.offer-builder__total,
+.contract-view__total {
+  font-size: 1.3rem;
+  color: var(--primary-light);
+  font-family: var(--font-serif);
+  margin: 16px 0;
+}
+
+.contract-view__terms {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 20px;
+  margin: 20px 0;
+  background: var(--bg-color);
+  border: 1px solid var(--glass-border);
+  border-radius: 0;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.contract-view__terms p {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 20px 16px 72px;
+  }
+
+  .app-shell section {
+    padding: 24px 20px;
+  }
+
+  .offer-view__actions {
+    flex-direction: column;
+  }
+}
+
+
+/* ==========================================================================
+   Album klienta — wybór zdjęć serduszkami, powiększenie, uwagi, zatwierdzenie
+   ========================================================================== */
+.app-shell [hidden] {
+  display: none !important;
+}
+
+.app-shell:has(.portal-album),
+.app-shell:has(.portal-finished-album),
+.app-shell:has(.admin-selections) {
+  max-width: 1240px;
+}
+
+.album-intro {
+  max-width: 68ch;
+  margin-bottom: 24px;
+}
+
+.app-shell .portal-album-grid,
+.app-shell .portal-finished-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.app-shell .portal-album-grid li,
+.app-shell .portal-finished-grid li {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.app-shell .portal-album-grid img,
+.app-shell .portal-finished-grid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  background: var(--bg-color);
+}
+
+.app-shell .album-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--bg-color);
+  cursor: zoom-in;
+}
+
+.app-shell .portal-album-grid li.is-selected .album-open {
+  outline: 3px solid var(--text-color);
+  outline-offset: -3px;
+}
+
+.app-shell .album-heart,
+.app-shell .lightbox-heart {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--glass-border);
+}
+
+.app-shell .album-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.album-heart svg,
+.lightbox-heart svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  transition: transform 0.15s ease;
+}
+
+.app-shell .album-heart[aria-pressed='true'],
+.app-shell .lightbox-heart[aria-pressed='true'] {
+  color: #d93a4a;
+  border-color: #d93a4a;
+}
+
+.album-heart[aria-pressed='true'] svg,
+.lightbox-heart[aria-pressed='true'] svg {
+  fill: currentColor;
+  transform: scale(1.08);
+}
+
+.app-shell .album-heart:hover,
+.app-shell .lightbox-heart:hover {
+  background: #fff;
+  color: #d93a4a;
+  border-color: #d93a4a;
+}
+
+.app-shell .album-heart:disabled,
+.app-shell .lightbox-heart:disabled {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.app-shell .album-heart:disabled:not([aria-pressed='true']) {
+  display: none;
+}
+
+.album-note-flag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 10px;
+  background: var(--text-color);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Pasek z licznikiem zostaje przy dolnej krawędzi ekranu podczas przewijania */
+.album-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 24px -36px -32px;
+  padding: 14px 36px;
+  background: var(--surface-color);
+  border-top: 1px solid var(--glass-border);
+}
+
+.app-shell .album-count {
+  color: var(--text-color);
+  font-size: 1.05rem;
+}
+
+.album-over {
+  font-weight: 600;
+}
+
+.album-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-shell .album-confirm-text {
+  flex-basis: 100%;
+  color: var(--text-color);
+}
+
+.app-shell .album-confirm-no,
+.app-shell .admin-reopen-selection,
+.app-shell .admin-copy-query,
+.app-shell .finished-download {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--text-color);
+}
+
+.app-shell .album-confirm-no:hover,
+.app-shell .admin-reopen-selection:hover,
+.app-shell .admin-copy-query:hover,
+.app-shell .finished-download:hover {
+  background: var(--text-color);
+  color: #fff;
+}
+
+.app-shell .album-error {
+  flex-basis: 100%;
+  color: #b3261e;
+}
+
+/* --- Powiększenie --- */
+.album-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  grid-template-rows: 56px minmax(0, 1fr) auto;
+  background: rgba(20, 20, 20, 0.95);
+}
+
+.album-lightbox:focus {
+  outline: none;
+}
+
+.lightbox-img {
+  grid-column: 2;
+  grid-row: 2;
+  place-self: center;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.app-shell .lightbox-close,
+.app-shell .lightbox-prev,
+.app-shell .lightbox-next {
+  align-self: center;
+  justify-self: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  border: 0;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.app-shell .lightbox-close:hover,
+.app-shell .lightbox-prev:hover,
+.app-shell .lightbox-next:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.album-lightbox :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.lightbox-close {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.lightbox-prev {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.lightbox-next {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.lightbox-panel {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 20px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  background: var(--surface-color);
+}
+
+.app-shell .lightbox-name {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .lightbox-heart {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+}
+
+.app-shell .lightbox-note {
+  flex: 1 1 280px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.app-shell .lightbox-note textarea {
+  min-height: 48px;
+}
+
+/* --- Gotowy album --- */
+.finished-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 16px 0 24px;
+}
+
+.app-shell .portal-finished-grid li button {
+  margin-top: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+}
+
+/* --- Panel fotografki: sesja i wybór klienta --- */
+.admin-session-status,
+.admin-session-actions,
+.admin-selections-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.admin-session-status {
+  margin-bottom: 20px;
+}
+
+.app-shell .admin-session-upload label {
+  margin-bottom: 16px;
+}
+
+.admin-upload-progress:not(:empty) {
+  margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .admin-selections-count {
+  color: var(--text-color);
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+.app-shell .admin-selections-names {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 480px;
+  margin-bottom: 12px;
+}
+
+.app-shell .admin-selections-hint {
+  font-size: 0.85rem;
+  margin-top: 10px;
+  max-width: 60ch;
+}
+
+.app-shell .admin-selections-notes li {
+  display: block;
+}
+
+.app-shell .admin-selections-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.app-shell .admin-selections-list li {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.admin-selections-list img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: var(--bg-color);
+}
+
+.admin-selections-name {
+  display: block;
+  margin-top: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .app-shell .portal-album-grid,
+  .app-shell .portal-finished-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .album-bar {
+    margin: 20px -20px -24px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .app-shell .album-submit,
+  .app-shell .album-confirm button {
+    flex: 1 1 100%;
+    align-self: stretch;
+  }
+
+  .album-lightbox {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-heart svg,
+  .lightbox-heart svg {
+    transition: none;
+  }
+}

@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.get('admin', false) == true;
+    }
+
+    function isAssignedClient(sessionId) {
+      return isSignedIn() &&
+        firestore.get(/databases/(default)/documents/sessions/$(sessionId)).data.clientUid == request.auth.uid;
+    }
+
+    match /sessions/{sessionId}/raw/{fileName} {
+      allow read: if isAdmin() || isAssignedClient(sessionId);
+      allow write: if isAdmin();
+    }
+
+    match /sessions/{sessionId}/finished/{fileName} {
+      allow read: if isAdmin() || isAssignedClient(sessionId);
+      allow write: if isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

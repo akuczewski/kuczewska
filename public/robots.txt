@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kuczewska.com/sitemap.xml

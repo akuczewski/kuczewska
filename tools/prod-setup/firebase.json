@@ -1,0 +1,1 @@
+{ "functions": { "source": "fn" }, "emulators": { "functions": { "port": 5055 }, "ui": { "enabled": false } } }

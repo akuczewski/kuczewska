@@ -1,19 +1,100 @@
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kuczewska | Fotografia Wnętrz i Nieruchomości</title>
-    <meta name="description" content="Profesjonalna fotografia wnętrz i nieruchomości w Białymstoku, Warszawie i Ełku. Zdjęcia, które sprzedają.">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kuczewska | Fotografia Wnętrz i Nieruchomości</title>
+  <meta name="description"
+    content="Fotografia wnętrz i nieruchomości, która sprzedaje i wynajmuje. Sesje zdjęciowe mieszkań, domów, apartamentów, hoteli i lokali — Białystok, Warszawa, Ełk. Umów sesję online.">
+  <meta name="keywords"
+    content="fotografia wnętrz, fotografia nieruchomości, Białystok, Warszawa, Ełk, zdjęcia mieszkań, sesja wnętrzarska">
+  <meta name="author" content="Anna Kuczewska">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://kuczewska.com/" />
+
+  <!-- Resource Hints for Performance -->
+  <link rel="preconnect" href="https://cdn.sanity.io">
+  <link rel="preconnect" href="https://eu9o3lpb.api.sanity.io" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="image" href="/logo-kuczewska.png">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kuczewska.com/">
+  <meta property="og:title" content="Kuczewska | Fotografia Wnętrz i Nieruchomości">
+  <meta property="og:description" content="Fotografia wnętrz, która sprzedaje i wynajmuje. Zobacz realizacje i umów sesję zdjęciową.">
+  <meta property="og:image" content="https://kuczewska.com/og-image.jpg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://kuczewska.com/">
+  <meta property="twitter:title" content="Kuczewska | Fotografia Wnętrz i Nieruchomości">
+  <meta property="twitter:description"
+    content="Fotografia wnętrz, która sprzedaje i wynajmuje. Zobacz realizacje i umów sesję zdjęciową.">
+  <meta property="twitter:image" content="https://kuczewska.com/og-image.jpg">
+
+  <!-- Google Fonts: Barlow Semi Condensed + Raleway -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@300;400;500&family=Raleway:wght@400;500;600&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@300;400;500&family=Raleway:wght@400;500;600&display=swap"
+      rel="stylesheet">
+  </noscript>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Kuczewska Fotografia",
+    "description": "Fotografia wnętrz i nieruchomości",
+    "url": "https://kuczewska.com/",
+    "telephone": "+48511017427",
+    "email": "anna@kuczewska.com",
+    "founder": { "@type": "Person", "name": "Anna Kuczewska" },
+    "areaServed": ["Białystok", "Warszawa", "Ełk"],
+    "sameAs": ["https://instagram.com/wnetrzanka"]
+  }
+  </script>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Statyczna powłoka: widoczna od razu, main.ts podmienia ją na pełną stronę. -->
+    <header class="site-header">
+      <nav class="container nav-container">
+        <a href="#home" class="logo">
+          <img src="/logo-kuczewska.png" alt="Kuczewska Fotografia" class="logo-img" width="720" height="176">
+        </a>
+        <ul class="nav-links">
+          <li><a href="#contact" class="btn btn-small">Umów sesję</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section id="home" class="hero">
+        <div class="hero-photo"></div>
+        <div class="container hero-below">
+          <div class="hero-card">
+            <p class="eyebrow">Fotografia nieruchomości i wnętrz</p>
+            <h1>Fotografia wnętrz, która <strong>sprzedaje i wynajmuje</strong>.</h1>
+            <p class="hero-sub">Sesje zdjęciowe mieszkań, domów, apartamentów na wynajem, hoteli i lokali — dla
+              właścicieli, agentów i projektantów.</p>
+            <div class="hero-btns">
+              <a href="#contact" class="btn">Umów sesję zdjęciową</a>
+            </div>
+            <p class="hero-note">Wycena jest bezpłatna i do niczego nie zobowiązuje. <a
+                href="tel:+48511017427">+48 511 017 427</a></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

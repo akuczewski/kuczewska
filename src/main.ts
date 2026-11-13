@@ -1,205 +1,584 @@
 import './style.css'
-import { getPortfolioItems, getAboutPage, getSiteSettings } from './sanity'
+import './app.css'
+import { getPortfolioItems, getAboutPage, getSiteSettings, getProjectBySlug } from './sanity'
+import { submitContactFormLead } from './lib/leads'
+import { translations } from './translations'
 
-async function initApp() {
-  let settings, portfolioItems, aboutData;
+const PHONE_DISPLAY = '+48 511 017 427';
+const PHONE_HREF = 'tel:+48511017427';
+const EMAIL = 'anna@kuczewska.com';
+const INSTAGRAM_URL = 'https://instagram.com/wnetrzanka';
+const LANGS = ['pl', 'en', 'es'];
 
-  try {
-    [settings, portfolioItems, aboutData] = await Promise.all([
-      getSiteSettings(),
-      getPortfolioItems(),
-      getAboutPage()
-    ]);
-  } catch (err) {
-    console.warn('Data fetching failed, using fallbacks', err);
+// --- State & Router ---
+let currentPath = '';
+const storedLang = localStorage.getItem('lang');
+const browserLang = navigator.language.split('-')[0];
+let currentLang = storedLang && LANGS.includes(storedLang) ? storedLang : (LANGS.includes(browserLang) ? browserLang : 'pl');
+
+function t(key: string) {
+  const keys = key.split('.');
+  let value = translations[currentLang];
+  for (const k of keys) {
+    value = value?.[k];
   }
+  return value || key;
+}
+
+function esc(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!
+  ));
+}
+
+/** Sanity CDN images get resized/cropped on the fly; local fallbacks pass through. */
+function img(url: string, w: number, h?: number): string {
+  if (!url || !url.startsWith('https://cdn.sanity.io')) return url;
+  return `${url}?auto=format&q=75&w=${w}${h ? `&h=${h}&fit=crop` : ''}`;
+}
+
+function isLandscape(url: string): boolean {
+  const match = /-(\d+)x(\d+)\.\w+$/.exec(url || '');
+  return match ? Number(match[1]) > Number(match[2]) : false;
+}
+
+function setLanguage(lang: string) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  location.reload(); // Simplest way to re-render everything with new lang
+}
+
+async function router() {
+  const path = window.location.hash || '#home';
+  if (path === currentPath) return;
+  currentPath = path;
 
   const appElement = document.querySelector<HTMLDivElement>('#app')!;
 
+  const isAppShellRoute =
+    path.startsWith('#/portal') ||
+    path.startsWith('#/admin') ||
+    path.startsWith('#/offer/') ||
+    path.startsWith('#/contract/');
+  appElement.classList.toggle('app-shell', isAppShellRoute);
+  // Portal / CRM keep their own dark theme (app.css); the marketing site is light.
+  document.body.classList.toggle('app-dark', isAppShellRoute);
+
+  if (isAppShellRoute) {
+    document.body.style.overflow = '';
+  }
+
+  if (path.startsWith('#/portal')) {
+    const { renderPortalRoute } = await import('./portal/router');
+    await renderPortalRoute(path, appElement);
+    return;
+  }
+
+  if (path.startsWith('#/admin')) {
+    const { renderAdminRoute } = await import('./admin/router');
+    await renderAdminRoute(path, appElement);
+    return;
+  }
+
+  if (path.startsWith('#/offer/') || path.startsWith('#/contract/')) {
+    const { renderBookingRouterRoute } = await import('./booking/router');
+    await renderBookingRouterRoute(path, appElement);
+    return;
+  }
+
+  // Update HTML lang attribute for SEO
+  document.documentElement.lang = currentLang;
+
+  // The static shell in index.html has no modal — that is how we know the
+  // full home page still needs rendering (first load or return from the portal).
+  const freshRender = !document.getElementById('project-modal');
+  if (freshRender) {
+    renderHomeShell(appElement);
+    loadHomeData();
+  }
+
+  if (path.startsWith('#project/')) {
+    showProjectModal(path.replace('#project/', ''));
+  } else {
+    closeProjectModal();
+    if (freshRender && /^#[a-z-]+$/.test(path) && path !== '#home') {
+      document.querySelector(path)?.scrollIntoView();
+    }
+  }
+
+  observeReveals();
+}
+
+// --- Home Shell (Static Structure) ---
+function renderHomeShell(appElement: HTMLElement) {
+  const tr = translations[currentLang];
+  const steps: Array<{ title: string, text: string }> = tr.process.steps;
+  const facts: Array<{ value: string, label: string }> = tr.facts;
+  const types: string[] = tr.contact.types;
+
   appElement.innerHTML = `
-    <header class="glass">
-      <nav class="container nav-container">
-        <div class="logo serif">
-          ${settings?.logoImageUrl ? `<img src="${settings.logoImageUrl}" alt="Logo" class="logo-img">` : (settings?.logoText || 'KUCZEWSKA')}
-        </div>
-        <ul class="nav-links">
-          <li><a href="#home">Główna</a></li>
-          <li><a href="#portfolio">Realizacje</a></li>
-          <li><a href="#about">O mnie</a></li>
-          <li><a href="#contact">Kontakt</a></li>
+    <header class="site-header">
+      <nav class="container nav-container" aria-label="${t('nav.menu')}">
+        <a href="#home" class="logo" aria-label="Kuczewska Fotografia">
+          <img src="/logo-kuczewska.png" alt="Kuczewska Fotografia" class="logo-img" width="720" height="176">
+        </a>
+        <button class="mobile-menu-btn" type="button" aria-label="${t('nav.menu')}" aria-expanded="false" aria-controls="nav-links">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#portfolio">${t('nav.portfolio')}</a></li>
+          <li><a href="#process">${t('nav.process')}</a></li>
+          <li><a href="#about">${t('nav.about')}</a></li>
+          <li><a href="#/portal/login" class="nav-login">${t('nav.login')}</a></li>
+          <li class="lang-switcher">
+            ${LANGS.map((lang) => `<button type="button" data-lang="${lang}" class="${currentLang === lang ? 'active' : ''}" ${currentLang === lang ? 'aria-current="true"' : ''}>${lang.toUpperCase()}</button>`).join('')}
+          </li>
+          <li><a href="#contact" class="btn btn-small">${t('cta.bookShort')}</a></li>
         </ul>
-        <div class="mobile-menu-btn">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
       </nav>
     </header>
 
     <main>
       <section id="home" class="hero">
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-          <h1 class="reveal">FOTOGRAFIA WNĘTRZ</h1>
-          <p class="reveal">Zatrzymaj piękno swojej przestrzeni. Profesjonalne sesje zdjęciowe nieruchomości, które budują wartość i przyciągają klientów.</p>
-          <div class="hero-btns reveal">
-            <a href="#portfolio" class="btn">Moje prace</a>
-            <a href="#contact" class="btn btn-outline">Kontakt</a>
+        <div class="hero-photo"><img id="hero-img" alt="${t('hero.imageAlt')}" fetchpriority="high"></div>
+        <div class="container hero-below">
+          <div class="hero-card">
+            <p class="eyebrow">${t('hero.eyebrow')}</p>
+            <h1>${t('hero.title')}</h1>
+            <p class="hero-sub">${t('hero.subtitle')}</p>
+            <div class="hero-btns">
+              <a href="#contact" class="btn">${t('cta.book')}</a>
+              <a href="#portfolio" class="link-arrow">${t('hero.secondary')}</a>
+            </div>
+            <p class="hero-note">${t('hero.note')} <a href="${PHONE_HREF}">${PHONE_DISPLAY}</a></p>
+          </div>
+          <dl class="facts">
+            ${facts.map((fact) => `<div><dt>${fact.value}</dt><dd>${fact.label}</dd></div>`).join('')}
+          </dl>
+        </div>
+      </section>
+
+      <section id="portfolio" class="portfolio-section">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>${t('portfolio.title')}</h2>
+            <p>${t('portfolio.subtitle')}</p>
+          </div>
+        </div>
+        <div class="wall" id="portfolio-grid">
+          <div class="loader-container"><div class="loader"></div></div>
+        </div>
+      </section>
+
+      <section id="process" class="process-section">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>${t('process.title')}</h2>
+            <p>${t('process.subtitle')}</p>
+          </div>
+          <ol class="steps">
+            ${steps.map((step, i) => `
+              <li class="reveal">
+                <span class="step-num" aria-hidden="true">${i + 1}</span>
+                <h3>${step.title}</h3>
+                <p>${step.text}</p>
+              </li>`).join('')}
+          </ol>
+          <div class="process-cta reveal">
+            <a href="#contact" class="btn">${t('cta.book')}</a>
           </div>
         </div>
       </section>
 
-      <section id="portfolio" class="portfolio-section container">
-        <h2 class="section-title reveal">Wybrane Realizacje</h2>
-        <div class="portfolio-grid">
-          ${portfolioItems?.length > 0 ? portfolioItems.map((item: any) => `
-            <div class="portfolio-item reveal">
-              <div class="portfolio-img" style="background-image: url('${item.imageUrl}')"></div>
-              <div class="portfolio-info">
-                <h3>${item.title}</h3>
-                <p>${item.location}</p>
-              </div>
-            </div>
-          `).join('') : `
-            <div class="portfolio-item reveal">
-              <div class="portfolio-img" style="background-image: url('/apartment.png')"></div>
-              <div class="portfolio-info">
-                <h3>Apartamenty Premium</h3>
-                <p>Warszawa</p>
-              </div>
-            </div>
-            <div class="portfolio-item reveal">
-              <div class="portfolio-img" style="background-image: url('/loft.png')"></div>
-              <div class="portfolio-info">
-                <h3>Nowoczesne Lofty</h3>
-                <p>Białystok</p>
-              </div>
-            </div>
-            <div class="portfolio-item reveal">
-              <div class="portfolio-img" style="background-image: url('/residence.png')"></div>
-              <div class="portfolio-info">
-                <h3>Rezydencje Marzeń</h3>
-                <p>Ełk</p>
-              </div>
-            </div>
-          `}
-        </div>
-      </section>
-
-      <section id="about" class="about-section glass">
+      <section id="about" class="about-section">
         <div class="container about-container">
-          <div class="about-content reveal">
-            <h2 class="section-title">O mnie</h2>
-            ${aboutData?.bio ? aboutData.bio.map((block: any) => `<p>${block.children[0].text}</p>`).join('') : `
-              <p>Cześć! Nazywam się <strong>Anka Kuczewska</strong> i od ponad 8 lat z pasją i zaangażowaniem fotografuję nieruchomości, dbając o to, by każda z nich zachwycała i przyciągała uwagę.</p>
-              <p>Współpracuję zarówno z klientami indywidualnymi jak i biznesowymi oferując fotografie, które wspierają sprzedaż i wynajem nieruchomości. Moje doświadczenie łączy się z dokładnością i indywidualnym podejściem do każdego projektu.</p>
-            `}
-            <a href="#contact" class="btn">Poznajmy się</a>
-          </div>
-          <div class="about-visual reveal">
-             <img src="${aboutData?.imageUrl || '/profile.png'}" alt="Anka Kuczewska" class="about-img">
-             <div class="about-stats">
-              ${aboutData?.stats ? aboutData.stats.map((stat: any) => `
-                <div class="stat-item">
-                  <span class="stat-number">${stat.number}</span>
-                  <span class="stat-label">${stat.label}</span>
-                </div>
-              `).join('') : `
-                <div class="stat-item">
-                  <span class="stat-number">8+</span>
-                  <span class="stat-label">Lat doświadczenia</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-number">500+</span>
-                  <span class="stat-label">Zrealizowanych sesji</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-number">100%</span>
-                  <span class="stat-label">Zadowolonych klientów</span>
-                </div>
-              `}
+          <div class="about-visual reveal" id="about-image-container"></div>
+          <div class="about-card reveal">
+            <div id="about-bio"><div class="loader-container"><div class="loader"></div></div></div>
+            <div class="about-stats" id="about-stats"></div>
+            <div class="about-actions">
+              <a href="#contact" class="btn">${t('cta.book')}</a>
+              <a href="${INSTAGRAM_URL}" class="link-arrow" target="_blank" rel="noopener">Instagram @wnetrzanka</a>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact" class="contact-section container">
-        <div class="contact-grid">
+      <section id="contact" class="contact-section">
+        <div class="container contact-grid">
           <div class="contact-info reveal">
-            <h2 class="section-title">Kontakt</h2>
-            <p>Zainteresowany współpracą? Chętnie omówię szczegóły Twojego projektu.</p>
-            <div class="contact-details">
-              <div class="contact-detail">
-                <i class="icon-email"></i>
-                <div>
-                  <h4>Email</h4>
-                  <a href="mailto:anna@kuczewska.com">anna@kuczewska.com</a>
-                </div>
-              </div>
-              <div class="contact-detail">
-                <i class="icon-phone"></i>
-                <div>
-                  <h4>Telefon</h4>
-                  <a href="tel:+48511017427">+48 511 017 427</a>
-                </div>
-              </div>
-            </div>
+            <h2>${t('contact.title')}</h2>
+            <p class="contact-lead">${t('contact.subtitle')}</p>
+            <p class="contact-direct-label">${t('contact.direct')}</p>
+            <a class="contact-phone" href="${PHONE_HREF}">${PHONE_DISPLAY}</a>
+            <a class="contact-mail" href="mailto:${EMAIL}">${EMAIL}</a>
+            <a class="contact-mail" href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Instagram @wnetrzanka</a>
           </div>
-          <form class="contact-form reveal">
-            <div class="form-group">
-              <input type="text" placeholder="Imię i Nazwisko" required>
-            </div>
-            <div class="form-group">
-              <input type="email" placeholder="Email" required>
-            </div>
-            <div class="form-group">
-              <textarea placeholder="W czym mogę pomóc?" rows="5" required></textarea>
-            </div>
-            <button type="submit" class="btn">Wyślij wiadomość</button>
-          </form>
+          <div class="contact-card reveal" id="contact-card">
+            <form class="contact-form" id="contact-form" novalidate>
+              <fieldset class="chips">
+                <legend>${t('contact.type')}</legend>
+                <div class="chips-row">
+                  ${types.map((type, i) => `
+                    <label class="chip"><input type="radio" name="type" value="${esc(translations.pl.contact.types[i])}"><span>${type}</span></label>`).join('')}
+                </div>
+              </fieldset>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cf-name">${t('contact.name')}</label>
+                  <input id="cf-name" type="text" name="name" autocomplete="given-name" maxlength="120" required>
+                </div>
+                <div class="form-group">
+                  <label for="cf-city">${t('contact.city')}</label>
+                  <input id="cf-city" type="text" name="city" autocomplete="address-level2" maxlength="120">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cf-email">${t('contact.email')}</label>
+                  <input id="cf-email" type="email" name="email" autocomplete="email" maxlength="160" required>
+                </div>
+                <div class="form-group">
+                  <label for="cf-phone">${t('contact.phone')} <span class="optional">(${t('contact.optional')})</span></label>
+                  <input id="cf-phone" type="tel" name="phone" autocomplete="tel" maxlength="40">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cf-message">${t('contact.message')} <span class="optional">(${t('contact.optional')})</span></label>
+                <textarea id="cf-message" name="message" rows="3" maxlength="3000" aria-describedby="cf-message-hint"></textarea>
+                <p class="hint" id="cf-message-hint">${t('contact.messageHint')}</p>
+              </div>
+              <div class="hp" aria-hidden="true">
+                <label for="cf-website">Website</label>
+                <input id="cf-website" type="text" name="website" tabindex="-1" autocomplete="off">
+              </div>
+              <p class="form-error" id="contact-error" role="alert" hidden></p>
+              <button type="submit" class="btn btn-block">${t('contact.submit')}</button>
+              <p class="hint">${t('hero.note')} ${t('contact.privacy')}</p>
+            </form>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer class="container">
-      <div class="footer-content">
-        <div class="logo serif">
-          ${settings?.logoImageUrl ? `<img src="${settings.logoImageUrl}" alt="Logo" class="logo-img">` : (settings?.logoText || 'KUCZEWSKA')}
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <img src="/logo-kuczewska.png" alt="Kuczewska Fotografia" class="logo-img" id="footer-logo" width="720" height="176" loading="lazy">
+        <div class="footer-links">
+          <a href="${PHONE_HREF}">${PHONE_DISPLAY}</a>
+          <a href="mailto:${EMAIL}">${EMAIL}</a>
+          <a href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Instagram</a>
         </div>
-        <p>&copy; ${new Date().getFullYear()} Kuczewska Fotografia. Wszystkie prawa zastrzeżone.</p>
-        <div class="social-links">
-          <a href="#">Instagram</a>
-          <a href="#">Facebook</a>
-        </div>
+        <p>&copy; ${new Date().getFullYear()} ${t('footer.rights')}</p>
       </div>
     </footer>
-  `
 
-  // Scroll Reveal Logic
-  const revealElements = document.querySelectorAll('.reveal');
-  const revealOnScroll = () => {
-    revealElements.forEach(el => {
-      const rect = el.getBoundingClientRect();
-      const isVisible = rect.top < window.innerHeight - 100;
-      if (isVisible) {
-        el.classList.add('active');
-      }
-    });
+    <div class="mobile-cta" id="mobile-cta">
+      <a href="${PHONE_HREF}" class="btn btn-outline">${t('cta.call')}</a>
+      <a href="#contact" class="btn">${t('cta.bookShort')}</a>
+    </div>
+
+    <div id="project-modal" class="modal" role="dialog" aria-modal="true" aria-label="${t('portfolio.title')}">
+      <div class="modal-bar">
+        <a href="#portfolio" class="modal-back">&larr; ${t('project.back')}</a>
+        <p class="modal-title" id="modal-title"></p>
+        <a href="#contact" class="btn btn-small">${t('cta.bookShort')}</a>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  `;
+
+  // Language switcher
+  appElement.querySelectorAll<HTMLButtonElement>('.lang-switcher button').forEach((button) => {
+    button.addEventListener('click', () => setLanguage(button.dataset.lang!));
+  });
+
+  // Mobile menu
+  const menuBtn = appElement.querySelector<HTMLButtonElement>('.mobile-menu-btn')!;
+  const navLinks = appElement.querySelector<HTMLElement>('.nav-links')!;
+  const setMenu = (open: boolean) => {
+    menuBtn.classList.toggle('active', open);
+    navLinks.classList.toggle('active', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
   };
+  menuBtn.addEventListener('click', () => setMenu(!navLinks.classList.contains('active')));
+  navLinks.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) setMenu(false);
+  });
 
-  window.addEventListener('scroll', revealOnScroll);
-  window.addEventListener('load', revealOnScroll);
+  // The sticky mobile bar steps aside once the booking form itself is on screen.
+  const mobileCta = document.getElementById('mobile-cta')!;
+  new IntersectionObserver(([entry]) => {
+    mobileCta.classList.toggle('at-form', entry.isIntersecting);
+  }, { threshold: 0.05 }).observe(document.getElementById('contact')!);
 
-  // Header background change on scroll
-  const header = document.querySelector('header');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-      header?.classList.add('scrolled');
-    } else {
-      header?.classList.remove('scrolled');
+  initContactForm();
+  handleScroll();
+}
+
+// --- Booking enquiry form — creates a Lead in the CRM (Tor C) ---
+function initContactForm() {
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const errorBox = document.getElementById('contact-error')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.hidden = true;
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const data = new FormData(form);
+    const field = (name: string) => String(data.get(name) ?? '').trim();
+    const name = field('name');
+    const email = field('email');
+
+    // Anna reads these in the CRM, so the composed summary stays in Polish.
+    const summary = [
+      field('type') && `Rodzaj nieruchomości: ${field('type')}`,
+      field('city') && `Miejscowość: ${field('city')}`,
+      currentLang !== 'pl' && `Język klienta: ${currentLang.toUpperCase()}`,
+    ].filter(Boolean).join('\n');
+    const message = [summary, field('message')].filter(Boolean).join('\n\n');
+
+    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    btn.textContent = t('contact.sending');
+    btn.disabled = true;
+
+    try {
+      // Honeypot: bots fill the hidden field; real visitors never see it.
+      if (!field('website')) {
+        await submitContactFormLead({ name, email, phone: field('phone') || null, message });
+      }
+      document.getElementById('contact-card')!.innerHTML = `
+        <div class="form-success" role="status" tabindex="-1">
+          <h3>${t('contact.successTitle')}</h3>
+          <p>${t('contact.successText')} <strong>${esc(email)}</strong>.</p>
+          <p><a href="${PHONE_HREF}">${PHONE_DISPLAY}</a></p>
+        </div>`;
+      document.querySelector<HTMLElement>('.form-success')?.focus();
+    } catch (err) {
+      console.warn('Lead submit failed:', err);
+      errorBox.innerHTML = `${t('contact.error')} <a href="${PHONE_HREF}">${PHONE_DISPLAY}</a>`;
+      errorBox.hidden = false;
+      btn.textContent = t('contact.submit');
+      btn.disabled = false;
     }
   });
 }
 
-initApp();
+// Fallback static data (used only when Sanity is unreachable or empty)
+const fallbackPortfolio = [
+  { title: 'Apartament Modern', location: 'Warszawa', slug: 'apartament-modern', imageUrl: '/interior_1.png' },
+  { title: 'Minimalistyczny Loft', location: 'Białystok', slug: 'minimalistyczny-loft', imageUrl: '/interior_2.png' },
+  { title: 'Rezydencja nad Jeziorem', location: 'Ełk', slug: 'rezydencja-nad-jeziorem', imageUrl: '/interior_3.png' }
+];
 
+function setHeroImage(url: string) {
+  const heroImg = document.getElementById('hero-img') as HTMLImageElement | null;
+  if (!heroImg || !url) return;
+  heroImg.addEventListener('load', () => heroImg.classList.add('loaded'), { once: true });
+  heroImg.src = img(url, 1920);
+}
+
+// --- Background Data Updates ---
+function loadHomeData() {
+  // Settings + portfolio together: the hero photo comes from settings, or else from a landscape cover.
+  Promise.all([getSiteSettings(), getPortfolioItems()]).then(([settings, items]) => {
+    const data: any[] = (items && items.length > 0) ? items : fallbackPortfolio;
+
+    if (settings) {
+      const title = currentLang === 'en' ? settings.heroTitle_en : (currentLang === 'es' ? settings.heroTitle_es : settings.heroTitle);
+      const subtitle = currentLang === 'en' ? settings.heroSubtitle_en : (currentLang === 'es' ? settings.heroSubtitle_es : settings.heroSubtitle);
+      const h1 = document.querySelector('.hero h1');
+      const sub = document.querySelector('.hero-sub');
+      if (title && h1) h1.textContent = title;
+      if (subtitle && sub) sub.textContent = subtitle;
+
+      // The logo in Sanity is the white variant made for the old dark theme, so it
+      // would vanish on the white header. The black wordmark ships in /public instead.
+    }
+
+    const heroSource = settings?.heroImageUrl
+      || data.find((item) => isLandscape(item.imageUrl))?.imageUrl
+      || (items && items.length > 0 ? data[0].imageUrl : '/hero.png');
+    setHeroImage(heroSource);
+
+    renderWall(data);
+  });
+
+  getAboutPage().then(renderAbout);
+}
+
+function renderWall(data: any[]) {
+  const grid = document.getElementById('portfolio-grid');
+  if (!grid) return;
+
+  grid.innerHTML = data.map((item, index) => {
+    const isLast = index === data.length - 1;
+    const href = `#project/${encodeURIComponent(item.slug)}`;
+    const title = esc(item.title);
+    const previews: string[] = (item.preview?.map((p: any) => p?.url).filter(Boolean) as string[] | undefined)
+      ?? fallbackPortfolio.filter((p) => p.slug !== item.slug).map((p) => p.imageUrl);
+    // The last project gives two of its small tiles to the booking tile.
+    const smalls = previews.slice(0, isLast ? 2 : 4);
+
+    return `
+      <div class="wall-block reveal">
+        <a href="${href}" class="tile tile-cover">
+          <img src="${img(item.imageUrl, 1200, 1200)}" alt="${title}" loading="lazy">
+          <span class="tile-label">
+            <span class="tile-title">${title}</span>
+            <span class="tile-meta">${esc(item.location || '')}</span>
+            <span class="tile-more">${t('portfolio.view')}${item.count ? ` (${item.count})` : ''} &rarr;</span>
+          </span>
+        </a>
+        ${smalls.map((url) => `
+          <a href="${href}" class="tile${!isLast && smalls.length < 4 ? ' tile-tall' : ''}" tabindex="-1" aria-hidden="true">
+            <img src="${img(url, 640, 640)}" alt="" loading="lazy">
+          </a>`).join('')}
+        ${isLast ? `
+          <a href="#contact" class="tile tile-cta">
+            <span class="tile-cta-title">${t('portfolio.tileTitle')}</span>
+            <span class="btn">${t('cta.book')}</span>
+          </a>` : ''}
+      </div>`;
+  }).join('');
+
+  observeReveals();
+}
+
+function renderAbout(about: any) {
+  const bioContainer = document.getElementById('about-bio');
+  if (bioContainer) {
+    const blocks: any[] | undefined = about
+      ? (currentLang === 'en' ? about.bio_en : (currentLang === 'es' ? about.bio_es : about.bio))
+      : undefined;
+
+    let heading = t('about.title');
+    let paragraphs: string[] = translations[currentLang].about.bio;
+
+    if (blocks && blocks.length > 0) {
+      const texts = blocks
+        .map((block) => ({
+          style: block.style,
+          text: (block.children || []).map((child: any) => child.text).join('').trim(),
+        }))
+        .filter((block) => block.text);
+      const headingBlock = texts.find((block) => /^h\d$/.test(block.style));
+      if (headingBlock) heading = headingBlock.text;
+      paragraphs = texts.filter((block) => block !== headingBlock).map((block) => block.text);
+    }
+
+    bioContainer.innerHTML = `<h2>${esc(heading)}</h2>` + paragraphs.map((p) => `<p>${esc(p)}</p>`).join('');
+  }
+
+  const imgContainer = document.getElementById('about-image-container');
+  if (imgContainer) {
+    imgContainer.innerHTML = `<img src="${img(about?.imageUrl || '/profile.png', 900)}" alt="${t('about.imageAlt')}" class="about-img" loading="lazy">`;
+  }
+
+  const statsContainer = document.getElementById('about-stats');
+  if (statsContainer && about?.stats?.length) {
+    statsContainer.innerHTML = about.stats.map((stat: any) => {
+      const label = currentLang === 'en' ? stat.label_en : (currentLang === 'es' ? stat.label_es : stat.label);
+      return `
+        <div class="stat-item">
+          <span class="stat-number">${esc(stat.number)}</span>
+          <span class="stat-label">${esc(label || stat.label)}</span>
+        </div>`;
+    }).join('');
+  }
+}
+
+// --- Project gallery (full-screen) ---
+async function showProjectModal(slug: string) {
+  const modal = document.getElementById('project-modal')!;
+  const body = document.getElementById('modal-body')!;
+  const titleEl = document.getElementById('modal-title')!;
+
+  modal.classList.add('open');
+  modal.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+  titleEl.textContent = '';
+  body.innerHTML = '<div class="loader-container" style="height: 60vh; align-items:center;"><div class="loader"></div></div>';
+
+  const decodedSlug = decodeURIComponent(slug);
+  const projectFromSanity = await getProjectBySlug(decodedSlug);
+  const fallbackProject = fallbackPortfolio.find(p => p.slug === decodedSlug);
+  const project = projectFromSanity || (fallbackProject ? {
+    ...fallbackProject,
+    mainImageUrl: fallbackProject.imageUrl,
+    description: null,
+    gallery: fallbackPortfolio.map((p) => ({ url: p.imageUrl, alt: p.title }))
+  } : null);
+
+  // The visitor may have closed the gallery while it was loading.
+  if (!window.location.hash.startsWith('#project/')) return;
+
+  if (!project) {
+    body.innerHTML = `<div class="container modal-end"><h2>${t('project.notFound')}</h2><a href="#portfolio" class="btn">${t('project.back')}</a></div>`;
+    return;
+  }
+
+  titleEl.textContent = [project.title, project.location].filter(Boolean).join(' · ');
+  const description: string[] = (project.description || [])
+    .map((block: any) => (block.children || []).map((child: any) => child.text).join('').trim())
+    .filter(Boolean);
+
+  body.innerHTML = `
+    <div class="container modal-project-content">
+      <h1>${esc(project.title)}</h1>
+      ${project.location ? `<p class="modal-location">${esc(project.location)}</p>` : ''}
+      ${description.length ? `<div class="project-description">${description.map((p) => `<p>${esc(p)}</p>`).join('')}</div>` : ''}
+      <div class="gallery-grid">
+        ${project.gallery?.map((image: any) => `
+          <div class="gallery-item">
+            <img src="${img(image.url, 1000)}" alt="${esc(image.alt || project.title)}" loading="lazy">
+          </div>`).join('') || `<p>${t('portfolio.empty')}</p>`}
+      </div>
+      <div class="modal-end">
+        <h2>${t('project.endTitle')}</h2>
+        <a href="#contact" class="btn">${t('cta.book')}</a>
+      </div>
+    </div>
+  `;
+}
+
+function closeProjectModal() {
+  const modal = document.getElementById('project-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+// --- Shared Logic ---
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('active');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+function observeReveals() {
+  document.querySelectorAll('.reveal:not(.active)').forEach(el => revealObserver.observe(el));
+}
+
+function handleScroll() {
+  document.querySelector('.site-header')?.classList.toggle('scrolled', window.scrollY > 8);
+  document.getElementById('mobile-cta')?.classList.toggle('visible', window.scrollY > 420);
+}
+
+window.addEventListener('scroll', handleScroll, { passive: true });
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && window.location.hash.startsWith('#project/')) {
+    window.location.hash = '#portfolio';
+  }
+});
+window.addEventListener('hashchange', router);
+window.addEventListener('load', router);

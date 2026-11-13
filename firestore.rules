@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.get('admin', false) == true;
+    }
+
+    function isAssignedClient(sessionId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/sessions/$(sessionId)).data.clientUid == request.auth.uid;
+    }
+
+    function isSelectionOpen(sessionId) {
+      return get(/databases/$(database)/documents/sessions/$(sessionId)).data.status == 'raw';
+    }
+
+    function isValidClientNote(note) {
+      return note == null || (note is string && note.size() <= 1000);
+    }
+
+    function isValidPublicLead() {
+      let data = request.resource.data;
+      return data.source == 'contact_form'
+        && data.status == 'new'
+        && data.name is string && data.name.size() > 0 && data.name.size() < 200
+        && data.email is string && data.email.size() > 0 && data.email.size() < 200
+        && (data.phone == null || data.phone is string)
+        && data.message is string && data.message.size() < 5000
+        && data.keys().hasOnly(['name', 'email', 'phone', 'message', 'source', 'status', 'createdAt']);
+    }
+
+    match /sessions/{sessionId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.clientUid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+
+      match /photos/{photoId} {
+        allow read: if isAdmin() || isAssignedClient(sessionId);
+        allow create, delete: if isAdmin();
+        // The client may only heart a frame and leave a retouching note, and only
+        // until they confirm the selection (session status leaves 'raw').
+        allow update: if isAdmin() || (
+          isAssignedClient(sessionId) &&
+          isSelectionOpen(sessionId) &&
+          resource.data.type == 'raw' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['selectedByClient', 'clientNote']) &&
+          request.resource.data.selectedByClient is bool &&
+          isValidClientNote(request.resource.data.get('clientNote', null))
+        );
+      }
+    }
+
+    match /packages/{packageId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /leads/{leadId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (!isSignedIn() && isValidPublicLead());
+    }
+
+    match /offers/{offerId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /contracts/{contractId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /bookings/{dateId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

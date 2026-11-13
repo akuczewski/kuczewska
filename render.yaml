@@ -1,0 +1,14 @@
+# Render blueprint — static build of the Vite app (site + client portal + CRM).
+# Cloud Functions and security rules are deployed separately with Firebase.
+services:
+  - type: web
+    name: kuczewska
+    runtime: static
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
